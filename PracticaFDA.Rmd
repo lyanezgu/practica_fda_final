@@ -49,3 +49,13 @@ hospital_charges$mean_medicare_payments = as.numeric(gsub("\\$","",hospital_char
 head(hospital_charges)
 
 ```
+## Datos faltantes
+
+```{r datos faltantes en la columna prov_state, include=TRUE}
+
+#ind <- which(hospital_charges$prov_state %in% sample(hospital_charges$prov_state,0.1))
+#hospital_charges$prov_state[ind]<-NA
+
+#hospital_charges
+
+```
