@@ -9,10 +9,43 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r cargas datos, include=TRUE}
 
+```{r librerias, include=TRUE}
 library(readr)
-hospital_charges <- read_csv("notebooks/hospital-charges.csv")
-hospital_charges
+library(ggplot2)
+library(GGally)
+library(dplyr)
+library(tidyr)
 ```
 
+## Cargar los datos
+
+```{r cargas datos, include=TRUE}
+hospital_charges <- read_csv("notebooks/hospital-charges.csv")
+head(hospital_charges)
+summary(hospital_charges)
+
+```
+## Borrar los espacios de los headers
+
+```{r cambiar columnas 1, include=TRUE}
+names(hospital_charges) <- c('drg_def', 'prov_id', 'prov_name', 'prov_address', 'prov_city', 'prov_state', 
+                   'prov_zip', 'referral_reg', 'total_discharges', 'mean_covered_charges',
+                   'mean_total_payments', 'mean_medicare_payments')
+head(hospital_charges)
+
+```
+
+## Eliminar dolar de las ultimas 3 columnas y cambiar los nombres de las columnas 
+
+```{r cambiar dolares, include=TRUE}
+
+hospital_charges$mean_covered_charges = as.numeric(gsub("\\$","",hospital_charges$mean_covered_charges))
+
+hospital_charges$mean_total_payments = as.numeric(gsub("\\$","",hospital_charges$mean_total_payments))
+
+hospital_charges$mean_medicare_payments = as.numeric(gsub("\\$","",hospital_charges$mean_medicare_payments))   
+
+head(hospital_charges)
+
+```
