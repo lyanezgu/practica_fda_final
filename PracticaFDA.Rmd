@@ -1,0 +1,18 @@
+---
+title: "PracticaFDA"
+author: "Isabela Ignacio"
+date: "27/11/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r cargas datos, include=TRUE}
+
+library(readr)
+hospital_charges <- read_csv("notebooks/hospital-charges.csv")
+hospital_charges
+```
+
