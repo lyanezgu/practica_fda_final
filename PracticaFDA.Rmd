@@ -29,7 +29,7 @@ summary(hospital_charges)
 
 ```
 
-## Definición de las variables que componen nuestros datos de estudio:
+## Definición de las variables que componen nuestros datos de estudio
 
 -DRG Definition = Grupo relativo a un diagnostico. 
   Los grupos de diagnóstico relacionado (DRG) se utilizan para clasificar la gravedad de la enfermedad en las visitas hospitalarias de pacientes 
@@ -37,8 +37,8 @@ summary(hospital_charges)
   que necesitan. El sistema DRG fue desarrollado en la Universidad de Yale en la década de 1970 para la clasificación estadística de casos hospitalarios.
   Realmente la variable DRG es relativa al código y la descripción que identifican el MS-DRG. Los MS-DRG son un sistema de clasificación que agrupa 
   condiciones clínicas similares (diagnósticos) y los procedimientos proporcionados por el hospital durante la estancia.
-  Luego estamos hablando de categorías de estadías hospitalarias para pacientes hospitalizados. El sistema de Medicare (SS de EEUU) los utiliza para
-  determinar los reembolsos para hospitales, centros de enfermería especializada y hospicios. Una estadía en el hospital puede variar de un día a 100
+  Luego estamos hablando de categorías de estadías hospitalarias para pacientes hospitalizados. El sistema de Medicare (Sistema de Seguridad Social en EEUU) los 
+  utiliza para determinar los reembolsos para hospitales, centros de enfermería especializada y hospicios. Una estadía en el hospital puede variar de un día a 100
   días. Los MS-DRG más caros tienen las estadías promedio más largas.
   El establecimiento del cada DRG se establece según las condiciones clínicas del paciente, necesidad de cantidades similares de recursos para 
   pacientes hospitalizados y sexo y edad del paciente. Para ello se utiliza el sistema de DRG llamado "Medicare Severity DRGs (MS-DRGs)" para
@@ -91,7 +91,7 @@ summary(hospital_charges)
   el seguro secundario (seguro privado).
 
 
-## Definición del Objetivo principal del análisis: 
+## Definición del Objetivo principal del análisis
  Saber que hospital debe elegir un paciente enfermo en EEUU, en base a su posible enfermedad, su localización y los costes que su caso clínico puede
  llegar a tener.
 
