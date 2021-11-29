@@ -30,21 +30,13 @@ summary(hospital_charges)
 ## Definición de las variables que componen nuestros datos de estudio
 
 -DRG Definition = Grupo relativo a un diagnostico. 
-  Los grupos de diagnóstico relacionado (DRG) se utilizan para clasificar la gravedad de la enfermedad en las visitas hospitalarias de pacientes 
-  hospitalizados, el riesgo de mortalidad, el pronóstico, la dificultad del tratamiento, la necesidad de intervención y la intensidad de los recursos 
-  que necesitan. El sistema DRG fue desarrollado en la Universidad de Yale en la década de 1970 para la clasificación estadística de casos hospitalarios.
-  Realmente la variable DRG es relativa al código y la descripción que identifican el MS-DRG. Los MS-DRG son un sistema de clasificación que agrupa 
-  condiciones clínicas similares (diagnósticos) y los procedimientos proporcionados por el hospital durante la estancia.
-  Luego estamos hablando de categorías de estadías hospitalarias para pacientes hospitalizados. El sistema de Medicare (Sistema de Seguridad Social en EEUU) los 
-  utiliza para determinar los reembolsos para hospitales, centros de enfermería especializada y hospicios. Una estadía en el hospital puede variar de un día a 100
-  días. Los MS-DRG más caros tienen las estadías promedio más largas.
-  El establecimiento del cada DRG se establece según las condiciones clínicas del paciente, necesidad de cantidades similares de recursos para 
-  pacientes hospitalizados y sexo y edad del paciente. Para ello se utiliza el sistema de DRG llamado "Medicare Severity DRGs (MS-DRGs)" para
-  reflejar en mejor manera la severidad de la enfermedad del paciente y su consumo de recursos para su recuperación. Para clasificar el nivel de
-  severidad de un paciente dentro del sistema "MS-DRGs" hay códigos secundarios de diagnóstico:
-    * MCC: Major Complication/Comorbidity -> El nivel más alto de severidad
-    * CC: Complication/Comorbidity -> El siguiente nivel de severidad
-    * Non-CC: Non-Complication/Comorbidity -> Este nivel no supone una gran severidad en la enfermedad ni un gran gasto de recursos
+Los grupos de diagnóstico relacionado (DRG) se utilizan para clasificar la gravedad de la enfermedad en las visitas hospitalarias de pacientes hospitalizados, el riesgo de mortalidad, el pronóstico, la dificultad del tratamiento, la necesidad de intervención y la intensidad de los recursos que necesitan. El sistema DRG fue desarrollado en la Universidad de Yale en la década de 1970 para la clasificación estadística de casos hospitalarios.
+Realmente la variable DRG es relativa al código y la descripción que identifican el MS-DRG. Los MS-DRG son un sistema de clasificación que agrupa condiciones clínicas similares (diagnósticos) y los procedimientos proporcionados por el hospital durante la estancia.
+Luego estamos hablando de categorías de estadías hospitalarias para pacientes hospitalizados. El sistema de Medicare (Sistema de Seguridad Social en EEUU) los utiliza para determinar los reembolsos para hospitales, centros de enfermería especializada y hospicios. Una estadía en el hospital puede variar de un día a 100 días. Los MS-DRG más caros tienen las estadías promedio más largas.
+El establecimiento del cada DRG se establece según las condiciones clínicas del paciente, necesidad de cantidades similares de recursos para pacientes hospitalizados y sexo y edad del paciente. Para ello se utiliza el sistema de DRG llamado "Medicare Severity DRGs (MS-DRGs)" para reflejar en mejor manera la severidad de la enfermedad del paciente y su consumo de recursos para su recuperación. Para clasificar el nivel de severidad de un paciente dentro del sistema "MS-DRGs" hay códigos secundarios de diagnóstico:
+    * MCC: Major Complication/Comorbidity -> El nivel más alto de severidad.
+    * CC: Complication/Comorbidity -> El siguiente nivel de severidad.
+    * Non-CC: Non-Complication/Comorbidity -> Este nivel no supone una gran severidad en la enfermedad ni un gran gasto de             recursos.
 
 -Provider Id = Id o número identificativo de referencia del hospital.
 
@@ -58,35 +50,18 @@ summary(hospital_charges)
 
 -Provider Zip Code = Código postal donde se ubica el hospital.
 
--Hospital Referral Region Description = Delinación geográfica específica creada por la organización norteamericana "Dartmouth Atlas of Health Care", 
-  para estudiar los mercados vinculados al sector salud en EEUU.
+-Hospital Referral Region Description = Delinación geográfica específica creada por la organización norteamericana "Dartmouth Atlas of Health Care", para estudiar los mercados vinculados al sector salud en EEUU.
 
 -Total discharge = Numero de personas dadas de alta.
 
--Average covered charges = Gastos medios del hospital por los servicios cubiertos por la seguridad social para todas las altas del grupo 
-  relacionado con el diagnóstico.
-  Por lo tanto cargo promedio según grupo de diagnóstico DRG establecido.
-  Los pacientes que tienen características clínicas similares y costos de tratamiento similares se asignan a un Grupo de Diagnóstico Relacionado (DRG).
-  El DRG está vinculado a un monto de pago fijo basado en el costo promedio del tratamiento de los pacientes del grupo.La asignación de DRG se basa 
-  en el diagnóstico del paciente, los procedimientos recibidos, la edad y otra información.
-  Por lo tanto esta variable contiene el cargo promedio por cada DRG proporcionado por el hospital. Sus cargos promedio podrían ser más o menos 
-  dependiendo de las necesidades específicas de su paciente y los servicios prestados.
-  Esto es lo que el hospital cobra en la factura final del hospital y es equivalente al "sticker price". Este es en gran medida un número irrelevante,
-  ya que no importa lo que cobren los diferentes hospitales, a todos se les pagará la misma cantidad de Medicare por cualquier DRG dado. Prácticamente
-  nadie paga el "stiker price" en un hospital.
-  Cuando un paciente ha sido admitido como hospitalizado en un hospital, ese hospital asigna un DRG cuando este paciente es dado de alta, basándolo 
-  en la atención que necesitaba durante su estadía en el hospital. Al hospital se le paga una cantidad fija por ese DRG, independientemente de cuánto
-  dinero realmente gaste en su tratamiento.
-  Si un hospital puede tratar a un paciente de forma efectiva por menos dinero del que Medicare paga por su DRG, entonces el hospital gana dinero 
-  con esa hospitalización. Si el hospital gasta más dinero cuidando del paciente de lo que Medicare le da para su DRG, entonces el hospital pierde 
-  dinero en esa hospitalización.
+-Average covered charges = Gastos medios del hospital por los servicios cubiertos por la seguridad social para todas las altas del grupo relacionado con el diagnóstico.Por lo tanto cargo promedio según grupo de diagnóstico DRG establecido. Los pacientes que tienen características clínicas similares y costos de tratamiento similares se asignan a un Grupo de Diagnóstico Relacionado (DRG). El DRG está vinculado a un monto de pago fijo basado en el costo promedio del tratamiento de los pacientes del grupo.La asignación de DRG se basa en el diagnóstico del paciente, los procedimientos recibidos, la edad y otra información.
+Por lo tanto esta variable contiene el cargo promedio por cada DRG proporcionado por el hospital. Sus cargos promedio podrían ser más o menos dependiendo de las necesidades específicas de su paciente y los servicios prestados.Esto es lo que el hospital cobra en la factura final del hospital y es equivalente al "sticker price". Este es en gran medida un número irrelevante,ya que no importa lo que cobren los diferentes hospitales, a todos se les pagará la misma cantidad de Medicare por cualquier DRG dado. Prácticamentenadie paga el "stiker price" en un hospital.Cuando un paciente ha sido admitido como hospitalizado en un hospital, ese hospital asigna un DRG cuando este paciente es dado de alta, basándolo en la atención que necesitaba durante su estadía en el hospital. Al hospital se le paga una cantidad fija por ese DRG, independientemente de cuánto dinero realmente gaste en su tratamiento. Si un hospital puede tratar a un paciente de forma efectiva por menos dinero del que Medicare paga por su DRG, entonces el hospital gana dinero con esa hospitalización. Si el hospital gasta más dinero cuidando del paciente de lo que Medicare le da para su DRG, entonces el hospital pierde dinero en esa hospitalización.
 
 -Average Medicare Payments = Importe medio cubierto por la Seguridad Social de EEUU.
- Esto es lo que Medicare paga al hospital por ese DRG.
+Esto es lo que Medicare paga al hospital por ese DRG.
 
 -Average Total Payments = Importe medio total a pagar por persona.
-  Esto es lo que realmente se le paga al hospital e incluye lo que paga Medicare más los copagos que paga el paciente más cualquier cosa que pague 
-  el seguro secundario (seguro privado).
+Esto es lo que realmente se le paga al hospital e incluye lo que paga Medicare más los copagos que paga el paciente más cualquier cosa que pague el seguro secundario (seguro privado).
 
 
 ## Definición del Objetivo principal del análisis
