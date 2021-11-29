@@ -17,7 +17,6 @@ library(GGally)
 library(dplyr)
 library(tidyr)
 library(missForest)
-
 ```
 
 ## Cargar los datos
@@ -26,7 +25,6 @@ library(missForest)
 hospital_charges <- read_csv("notebooks/hospital-charges.csv")
 head(hospital_charges)
 summary(hospital_charges)
-
 ```
 
 ## Definición de las variables que componen nuestros datos de estudio
@@ -92,8 +90,8 @@ summary(hospital_charges)
 
 
 ## Definición del Objetivo principal del análisis
- Saber que hospital debe elegir un paciente enfermo en EEUU, en base a su posible enfermedad, su localización y los costes que su caso clínico puede
- llegar a tener.
+Saber que hospital debe elegir un paciente enfermo en EEUU, en base a su posible enfermedad, su localización y los costes que su caso clínico puede
+llegar a tener.
 
 
 ## Borrar los espacios de los headers
@@ -102,8 +100,8 @@ summary(hospital_charges)
 names(hospital_charges) <- c('drg_def', 'prov_id', 'prov_name', 'prov_address', 'prov_city', 'prov_state', 
                    'prov_zip', 'referral_reg', 'total_discharges', 'mean_covered_charges',
                    'mean_total_payments', 'mean_medicare_payments')
+                   
 head(hospital_charges)
-
 ```
 
 ## Eliminar dolar de las ultimas 3 columnas y cambiar los nombres de las columnas 
@@ -117,18 +115,15 @@ hospital_charges$mean_total_payments = as.numeric(gsub("\\$","",hospital_charges
 hospital_charges$mean_medicare_payments = as.numeric(gsub("\\$","",hospital_charges$mean_medicare_payments))   
 
 head(hospital_charges)
-
 ```
 
 ## Datos faltantes
 
 ```{r datos faltantes menos en las columnas 1,3,5,7,8,9,11,12 include=TRUE}
-
 set.seed(1)
 hospital_charges <-bind_cols(hospital_charges[c(1,3,5,7,8,9,11,12)],missForest::prodNA(hospital_charges[c(-1,-3,-5,-7,-8,-9,-11,-12)],noNA=0.1))
 
 hospital_charges
-
 ```
 
 ## División de los datos originales entre "train" (80%) y "test" (20%)
@@ -141,5 +136,4 @@ test <- hospital_charges[-sample,]
 
 train
 test
-
 ```
