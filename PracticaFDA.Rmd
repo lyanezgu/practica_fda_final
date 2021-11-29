@@ -7,81 +7,109 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+```
+```{r, echo = F, message=FALSE, warning = FALSE}
+library(formatR)
 ```
 
+# 0. Introducción 
 
-```{r librerias, include=TRUE}
+La práctica consiste en la elaboración y presentación de un informe de un proyecto de Ciencia de Datos, utilizando las técnicas aprendidas durante el curso, aplicadas a los datos seleccionados. 
+
+
+# 1. Uso de herramienta de control de versiones
+
+El grupo eligió trabajar en lenguage R (RStudio version 1.4.1717) y utilizar como herramienta de control de versiones Github. El proyecto "/practica_fd_final" fue creado por Luisa Yánez (usuario lyanezgu) y compartido con los restantes participantes del grupo Isabela Ignacio (usuario IsaPires1329) y Miguel García (usuario mgarciasanc2021).
+
+
+# 2. Análisis exploratório inicial - conjunto de datos
+
+El conjunto de datos elegido por el grupo se llama "Hospital Charges in America" y incluye información que compara las tarifas de los servicios de hospitalizacón en diferentes estados de los EEUU para los 100 principales grupos de diagnósticos. 
+
+**Link del data set:** <https://www.kaggle.com/dhirajnirne/hospital-charges-in-america>.
+
+## 2.1 Paquetes
+
+```{r librerias, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 library(readr)
 library(ggplot2)
 library(GGally)
 library(dplyr)
 library(tidyr)
 library(missForest)
+
 ```
 
-## Cargar los datos
+## 2.2 Cargar los datos
 
-```{r cargas datos, include=TRUE}
+El conjunto de datos "Hospital Charges in America" contiene 12 columnas y 163065 filas y está en formato .csv. 
+Inicialmente se guardó los datos en un data frame "hospital_charges" y hizo un estudio inicial de su contenido utilizando la función head y summary.
+
+```{r cargas datos, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 hospital_charges <- read_csv("notebooks/hospital-charges.csv")
 head(hospital_charges)
 summary(hospital_charges)
+
 ```
+## 2.2 Definición de las variables que componen los datos de estudio
 
-## Definición de las variables que componen nuestros datos de estudio
+Las 12 variables que componen los datos pueden ser descritas como:
 
--DRG Definition = Grupo relativo a un diagnostico. 
-Los grupos de diagnóstico relacionado (DRG) se utilizan para clasificar la gravedad de la enfermedad en las visitas hospitalarias de pacientes hospitalizados, el riesgo de mortalidad, el pronóstico, la dificultad del tratamiento, la necesidad de intervención y la intensidad de los recursos que necesitan. El sistema DRG fue desarrollado en la Universidad de Yale en la década de 1970 para la clasificación estadística de casos hospitalarios.
-Realmente la variable DRG es relativa al código y la descripción que identifican el MS-DRG. Los MS-DRG son un sistema de clasificación que agrupa condiciones clínicas similares (diagnósticos) y los procedimientos proporcionados por el hospital durante la estancia.
-Luego estamos hablando de categorías de estadías hospitalarias para pacientes hospitalizados. El sistema de Medicare (Sistema de Seguridad Social en EEUU) los utiliza para determinar los reembolsos para hospitales, centros de enfermería especializada y hospicios. Una estadía en el hospital puede variar de un día a 100 días. Los MS-DRG más caros tienen las estadías promedio más largas.
-El establecimiento del cada DRG se establece según las condiciones clínicas del paciente, necesidad de cantidades similares de recursos para pacientes hospitalizados y sexo y edad del paciente. Para ello se utiliza el sistema de DRG llamado "Medicare Severity DRGs (MS-DRGs)" para reflejar en mejor manera la severidad de la enfermedad del paciente y su consumo de recursos para su recuperación. Para clasificar el nivel de severidad de un paciente dentro del sistema "MS-DRGs" hay códigos secundarios de diagnóstico:
+* **DRG Definition:** Grupo relativo a un diagnostico. Los grupos de diagnóstico relacionado (DRG) se utilizan para clasificar la gravedad de la enfermedad en las visitas hospitalarias de pacientes hospitalizados, el riesgo de mortalidad, el pronóstico, la dificultad del tratamiento, la necesidad de intervención y la intensidad de los recursos que necesitan. El sistema DRG fue desarrollado en la Universidad de Yale en la década de 1970 para la clasificación estadística de casos hospitalarios. Realmente la variable DRG es relativa al código y la descripción que identifican el MS-DRG. Los MS-DRG son un sistema de clasificación que agrupa condiciones clínicas similares (diagnósticos) y los procedimientos proporcionados por el hospital durante la estancia. Luego estamos hablando de categorías de estadías hospitalarias para pacientes hospitalizados. El sistema de Medicare (Sistema de Seguridad Social en EEUU) los utiliza para determinar los reembolsos para hospitales, centros de enfermería especializada y hospicios. Una estadía en el hospital puede variar de un día a 100 días. Los MS-DRG más caros tienen las estadías promedio más largas. El establecimiento del cada DRG se establece según las condiciones clínicas del paciente, necesidad de cantidades similares de recursos para pacientes hospitalizados y sexo y edad del paciente. Para ello se utiliza el sistema de DRG llamado "Medicare Severity DRGs (MS-DRGs)" para reflejar en mejor manera la severidad de la enfermedad del paciente y su consumo de recursos para su recuperación. Para clasificar el nivel de severidad de un paciente dentro del sistema "MS-DRGs" hay códigos secundarios de diagnóstico:
     * MCC: Major Complication/Comorbidity -> El nivel más alto de severidad.
     * CC: Complication/Comorbidity -> El siguiente nivel de severidad.
-    * Non-CC: Non-Complication/Comorbidity -> Este nivel no supone una gran severidad en la enfermedad ni un gran gasto de             recursos.
+    * Non-CC: Non-Complication/Comorbidity -> Este nivel no supone una gran severidad en la enfermedad ni un gran gasto de recursos;
+    
+* **Provider ID:** ID o número identificativo de referencia del hospital;
 
--Provider Id = Id o número identificativo de referencia del hospital.
+* **Provider Name:** Nombre del hospital;
 
--Provider Name = Nombre del hospital.
+* **Provider Street Address:** Dirección postal donde se ubica el hospital;
 
--Provider Street Address = Dirección postal donde se ubica el hospital.
+* **Provider City:** Ciudad donde se ubica el hospital;
 
--Provider City = Ciudad donde se ubica el hospital.
+* **Provider State:** Estado federal de EEUU donde se ubica el hospital;
 
--Provider State = Estado federal de EEUU donde se ubica el hospital.
+* **Provider Zip Code:** Código postal donde se ubica el hospital;
 
--Provider Zip Code = Código postal donde se ubica el hospital.
+* **Hospital Referral Region Description:** Delinación geográfica específica creada por la organización norteamericana "Dartmouth Atlas of Health Care", para estudiar los mercados vinculados al sector salud en EEUU;
 
--Hospital Referral Region Description = Delinación geográfica específica creada por la organización norteamericana "Dartmouth Atlas of Health Care", para estudiar los mercados vinculados al sector salud en EEUU.
+* **Total Discharges:** Número de personas dadas de alta;
 
--Total discharge = Numero de personas dadas de alta.
+* **Average Covered Charges:** Gastos medios del hospital por los servicios cubiertos por la seguridad social para todas las altas del grupo relacionado con el diagnóstico. Por lo tanto cargo promedio según grupo de diagnóstico DRG establecido. Los pacientes que tienen características clínicas similares y costos de tratamiento similares se asignan a un Grupo de Diagnóstico Relacionado (DRG). El DRG está vinculado a un monto de pago fijo basado en el costo promedio del tratamiento de los pacientes del grupo.La asignación de DRG se basa en el diagnóstico del paciente, los procedimientos recibidos, la edad y otra información. Por lo tanto esta variable contiene el cargo promedio por cada DRG proporcionado por el hospital. Sus cargos promedio podrían ser más o menos dependiendo de las necesidades específicas de su paciente y los servicios prestados.E  sto es lo que el hospital cobra en la factura final del hospital y es equivalente al "sticker price". Este es en gran medida un número irrelevante, ya que no importa lo que cobren los diferentes hospitales, a todos se les pagará la misma cantidad de Medicare por cualquier DRG dado. Prácticamente nadie paga el "stiker price" en un hospital. Cuando un paciente ha sido admitido como hospitalizado en un hospital, ese hospital asigna un DRG cuando este paciente es dado de alta, basándolo en la atención que necesitaba durante su estadía en el hospital. Al hospital se le paga una cantidad fija por ese DRG, independientemente de cuánto dinero realmente gaste en su tratamiento. Si un hospital puede tratar a un paciente de forma efectiva por menos dinero del que Medicare paga por su DRG, entonces el hospital gana dinero con esa hospitalización. Si el hospital gasta más dinero cuidando del paciente de lo que Medicare le da para su DRG, entonces el hospital pierde dinero en esa hospitalización;
 
--Average covered charges = Gastos medios del hospital por los servicios cubiertos por la seguridad social para todas las altas del grupo relacionado con el diagnóstico.Por lo tanto cargo promedio según grupo de diagnóstico DRG establecido. Los pacientes que tienen características clínicas similares y costos de tratamiento similares se asignan a un Grupo de Diagnóstico Relacionado (DRG). El DRG está vinculado a un monto de pago fijo basado en el costo promedio del tratamiento de los pacientes del grupo.La asignación de DRG se basa en el diagnóstico del paciente, los procedimientos recibidos, la edad y otra información.
-Por lo tanto esta variable contiene el cargo promedio por cada DRG proporcionado por el hospital. Sus cargos promedio podrían ser más o menos dependiendo de las necesidades específicas de su paciente y los servicios prestados.Esto es lo que el hospital cobra en la factura final del hospital y es equivalente al "sticker price". Este es en gran medida un número irrelevante,ya que no importa lo que cobren los diferentes hospitales, a todos se les pagará la misma cantidad de Medicare por cualquier DRG dado. Prácticamentenadie paga el "stiker price" en un hospital.Cuando un paciente ha sido admitido como hospitalizado en un hospital, ese hospital asigna un DRG cuando este paciente es dado de alta, basándolo en la atención que necesitaba durante su estadía en el hospital. Al hospital se le paga una cantidad fija por ese DRG, independientemente de cuánto dinero realmente gaste en su tratamiento. Si un hospital puede tratar a un paciente de forma efectiva por menos dinero del que Medicare paga por su DRG, entonces el hospital gana dinero con esa hospitalización. Si el hospital gasta más dinero cuidando del paciente de lo que Medicare le da para su DRG, entonces el hospital pierde dinero en esa hospitalización.
+* **Average Medicare Payments:**Importe medio cubierto por la Seguridad Social de EEUU. Esto es lo que Medicare paga al hospital por ese DRG;
 
--Average Medicare Payments = Importe medio cubierto por la Seguridad Social de EEUU.
-Esto es lo que Medicare paga al hospital por ese DRG.
-
--Average Total Payments = Importe medio total a pagar por persona.
-Esto es lo que realmente se le paga al hospital e incluye lo que paga Medicare más los copagos que paga el paciente más cualquier cosa que pague el seguro secundario (seguro privado).
+* **Average Total Payments:** Importe medio total a pagar por persona. Esto es lo que realmente se le paga al hospital e incluye lo que paga Medicare más los copagos que paga el paciente más cualquier cosa que pague el seguro secundario (seguro privado).
 
 
-## Definición del Objetivo principal del análisis
-Saber que hospital debe elegir un paciente enfermo en EEUU, en base a su posible enfermedad, su localización y los costes que su caso clínico puede
-llegar a tener.
+
+# 3. Definición de objetivos
+
+El objetivo final del proyecto es llegar a un modelo para recomendar que hospital debe elegir un paciente enfermo en EEUU, en base a su posible enfermedad, su localización y los costes que su caso clínico puede legar a tener.
 
 
-## Borrar los espacios de los headers
+Para esta primera entrega el objetivo es realizar el tratamiento de datos adecuado y seleccionar las mejores variables que servirán para llegar al modelo Machine Learning desedo.Se desea también hacer un ajuste, interpretación y diagnosis del modelo de regresión linela múltiple.
 
-```{r cambiar columnas 1, include=TRUE}
+
+# 4. Transformaciones de variables cuantitativas y procesado de variables cualitativas - Limpieza de datos
+
+Se ha decidido cambiar los nombres de las columnas para seguir un patrón y eliminar el simbolo de dolar de las últimas tres columnas, transformando las columnas a tipo numérico. 
+
+## 4.1 Cambiar los nombres de las columnas
+
+```{r cambiar columnas 1, include=TRUE, message=FALSE, warning = FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 names(hospital_charges) <- c('drg_def', 'prov_id', 'prov_name', 'prov_address', 'prov_city', 'prov_state', 
                    'prov_zip', 'referral_reg', 'total_discharges', 'mean_covered_charges',
-                   'mean_total_payments', 'mean_medicare_payments')
-                   
+                   'mean_total_payments', 'mean_medicare_payments') 
 head(hospital_charges)
 ```
 
-## Eliminar dolar de las ultimas 3 columnas y cambiar los nombres de las columnas 
 
-```{r cambiar dolares, include=TRUE}
+## 4.2 Eliminar dolar de las ultimas 3 columnas 
+
+```{r cambiar dolares, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 
 hospital_charges$mean_covered_charges = as.numeric(gsub("\\$","",hospital_charges$mean_covered_charges))
 
@@ -92,18 +120,39 @@ hospital_charges$mean_medicare_payments = as.numeric(gsub("\\$","",hospital_char
 head(hospital_charges)
 ```
 
-## Datos faltantes
 
-```{r datos faltantes menos en las columnas 1,3,5,7,8,9,11,12 include=TRUE}
+## 4.3 Creando columna nueva mean_tota_payments - mean_medicare_payments
+
+Nueva variable con el valor de los copagos que paga el paciente más cualquier cosa que pague el seguro secundario (seguro privado).
+
+```{r nueva variable, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
+
+```
+
+
+
+# 5. Detección, tratamiento e imputación de datos faltantes
+
+Através de la función summary se comprobó que no hay datos faltantes en el data set y por eso el grupo tuvo que añadirlos manualmente para aproximarse mejor de un caso real con datos faltantes. Los datos faltantes fueron imputados solo en las columnas que no van a servir de analísis para este estudio.
+
+Uctilizamos la libreria missForest y generamos una semilla para que el resultado sea siempre el mismo.
+
+```{r df, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
 set.seed(1)
 hospital_charges <-bind_cols(hospital_charges[c(1,3,5,7,8,9,11,12)],missForest::prodNA(hospital_charges[c(-1,-3,-5,-7,-8,-9,-11,-12)],noNA=0.1))
 
 hospital_charges
+
 ```
 
-## División de los datos originales entre "train" (80%) y "test" (20%)
+# 6. Partición del conjunto de datos: data set training y data set test
 
-```{r 80 training y 20 test include=TRUE}
+Se divide el conjunto de datos en dos (20% test y 80% training), guardando la partición test para ser utilizada par la validación del modelo final y trabajando con la partición training.
+
+
+```{r p, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 set.seed(101)
 sample <- sample.int(n=nrow(hospital_charges), size=floor(.80*nrow(hospital_charges)), replace = F)
 train <- hospital_charges[sample,]
@@ -111,4 +160,11 @@ test <- hospital_charges[-sample,]
 
 train
 test
+
 ```
+
+
+
+
+
+
