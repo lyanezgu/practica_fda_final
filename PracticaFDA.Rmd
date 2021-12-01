@@ -87,7 +87,7 @@ Las 12 variables que componen los datos pueden ser descritas como:
 
 # 3. Definición de objetivos
 
-El objetivo final del proyecto es llegar a un modelo para recomendar que hospital debe elegir un paciente enfermo en EEUU, en base a su posible enfermedad, su localización y los costes que su caso clínico puede legar a tener.
+El objetivo final del proyecto es llegar a un modelo para recomendar que hospital debe elegir un paciente enfermo en EEUU, en base a su posible enfermedad, su localización y los costes que su caso clínico puede llegar a tener.
 
 
 Para esta primera entrega el objetivo es realizar el tratamiento de datos adecuado y seleccionar las mejores variables que servirán para llegar al modelo Machine Learning desedo.Se desea también hacer un ajuste, interpretación y diagnosis del modelo de regresión linela múltiple.
@@ -121,7 +121,7 @@ head(hospital_charges)
 ```
 
 
-## 4.3 Creando columna nueva mean_tota_payments - mean_medicare_payments
+## 4.3 Creando columna nueva mean_total_payments - mean_medicare_payments
 
 Nueva variable con el valor de los copagos que paga el paciente más cualquier cosa que pague el seguro secundario (seguro privado).
 
