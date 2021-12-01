@@ -23,7 +23,7 @@ La práctica consiste en la elaboración y presentación de un informe de un pro
 El grupo eligió trabajar en lenguage R (RStudio version 1.4.1717) y utilizar como herramienta de control de versiones Github. El proyecto "/practica_fd_final" fue creado por Luisa Yánez (usuario lyanezgu) y compartido con los restantes participantes del grupo Isabela Ignacio (usuario IsaPires1329) y Miguel García (usuario mgarciasanc2021).
 
 
-# 2. Análisis exploratório inicial - conjunto de datos
+# 2. Conjunto de datos elegido
 
 El conjunto de datos elegido por el grupo se llama "Hospital Charges in America" y incluye información que compara las tarifas de los servicios de hospitalizacón en diferentes estados de los EEUU para los 100 principales grupos de diagnósticos. 
 
@@ -48,11 +48,47 @@ Inicialmente se guardó los datos en un data frame "hospital_charges" y hizo un 
 
 ```{r cargas datos, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 hospital_charges <- read_csv("notebooks/hospital-charges.csv")
+hospital_charges
 head(hospital_charges)
 summary(hospital_charges)
+```
+
+# 3. Detección, tratamiento e imputación de datos faltantes
+
+Através de la función summary se comprobó que no hay datos faltantes en el data set y por eso el grupo tuvo que añadirlos manualmente para aproximarse mejor de un caso real con datos faltantes. Los datos faltantes fueron imputados solo en las columnas que no van a servir de analísis para este estudio.
+
+Uctilizamos la libreria missForest y generamos una semilla para que el resultado sea siempre el mismo.
+
+```{r df, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
+set.seed(101)
+hospital_charges <-bind_cols(hospital_charges[c(1,3,5,7,8,9,11,12)],missForest::prodNA(hospital_charges[c(-1,-3,-5,-7,-8,-9,-11,-12)],noNA=0.1))
+
+hospital_charges
 
 ```
-## 2.2 Definición de las variables que componen los datos de estudio
+
+# 4. Partición del conjunto de datos: data set training y data set test
+
+Se divide el conjunto de datos en dos (20% test y 80% training), guardando la partición test para ser utilizada par la validación del modelo final y trabajando con la partición training.
+
+
+```{r p, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+set.seed(101)
+sample <- sample.int(n=nrow(hospital_charges), size=floor(.80*nrow(hospital_charges)), replace = F)
+train <- hospital_charges[sample,]
+test <- hospital_charges[-sample,]
+
+train
+test
+
+```
+
+
+### 5. EDA 
+
+
+## 5.1 Definición de las variables que componen los datos de estudio
 
 Las 12 variables que componen los datos pueden ser descritas como:
 
@@ -85,7 +121,7 @@ Las 12 variables que componen los datos pueden ser descritas como:
 
 
 
-# 3. Definición de objetivos
+# 5.2. Definición de objetivos
 
 El objetivo final del proyecto es llegar a un modelo para recomendar que hospital debe elegir un paciente enfermo en EEUU, en base a su posible enfermedad, su localización y los costes que su caso clínico puede llegar a tener.
 
@@ -93,21 +129,24 @@ El objetivo final del proyecto es llegar a un modelo para recomendar que hospita
 Para esta primera entrega el objetivo es realizar el tratamiento de datos adecuado y seleccionar las mejores variables que servirán para llegar al modelo Machine Learning desedo.Se desea también hacer un ajuste, interpretación y diagnosis del modelo de regresión linela múltiple.
 
 
-# 4. Transformaciones de variables cuantitativas y procesado de variables cualitativas - Limpieza de datos
+# 5.3. Transformaciones de variables cuantitativas y procesado de variables cualitativas - Limpieza de datos
 
 Se ha decidido cambiar los nombres de las columnas para seguir un patrón y eliminar el simbolo de dolar de las últimas tres columnas, transformando las columnas a tipo numérico. 
 
-## 4.1 Cambiar los nombres de las columnas
+## 5.3.1 Cambiar los nombres de las columnas
 
 ```{r cambiar columnas 1, include=TRUE, message=FALSE, warning = FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-names(hospital_charges) <- c('drg_def', 'prov_id', 'prov_name', 'prov_address', 'prov_city', 'prov_state', 
-                   'prov_zip', 'referral_reg', 'total_discharges', 'mean_covered_charges',
-                   'mean_total_payments', 'mean_medicare_payments') 
+
+
+hospital_charges
+names(hospital_charges) <- c('drg_def', 'prov_name', 'prov_city', 'prov_zip', 'referral_reg', 'total_discharges', 'mean_total_payments', 'mean_medicare_payments','prov_id', 'prov_address','prov_state', 'mean_covered_charges')
+                    
+
 head(hospital_charges)
 ```
 
 
-## 4.2 Eliminar dolar de las ultimas 3 columnas 
+## 5.3.2 Eliminar dolar de las ultimas 3 columnas 
 
 ```{r cambiar dolares, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 
@@ -121,49 +160,43 @@ head(hospital_charges)
 ```
 
 
-## 4.3 Creando columna nueva mean_total_payments - mean_medicare_payments
+## 5.4 Creando columna nueva mean_total_payments - mean_medicare_payments
 
 Nueva variable con el valor de los copagos que paga el paciente más cualquier cosa que pague el seguro secundario (seguro privado).
 
 ```{r nueva variable, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 
-
-```
-
-
-
-# 5. Detección, tratamiento e imputación de datos faltantes
-
-Através de la función summary se comprobó que no hay datos faltantes en el data set y por eso el grupo tuvo que añadirlos manualmente para aproximarse mejor de un caso real con datos faltantes. Los datos faltantes fueron imputados solo en las columnas que no van a servir de analísis para este estudio.
-
-Uctilizamos la libreria missForest y generamos una semilla para que el resultado sea siempre el mismo.
-
-```{r df, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-
-set.seed(1)
-hospital_charges <-bind_cols(hospital_charges[c(1,3,5,7,8,9,11,12)],missForest::prodNA(hospital_charges[c(-1,-3,-5,-7,-8,-9,-11,-12)],noNA=0.1))
-
+hospital_charges <- hospital_charges %>% mutate(copagos = mean_total_payments - mean_medicare_payments)
 hospital_charges
-
 ```
 
-# 6. Partición del conjunto de datos: data set training y data set test
-
-Se divide el conjunto de datos en dos (20% test y 80% training), guardando la partición test para ser utilizada par la validación del modelo final y trabajando con la partición training.
+## 5.5 Grafico EEUU total payments 
 
 
-```{r p, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-set.seed(101)
-sample <- sample.int(n=nrow(hospital_charges), size=floor(.80*nrow(hospital_charges)), replace = F)
-train <- hospital_charges[sample,]
-test <- hospital_charges[-sample,]
+```{r test mapa, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 
-train
-test
+#Haciendo la media de lo que cobra el hospital por estado
+
+region_geog <- hospital_charges %>% group_by(prov_state) %>% summarise (mean_total_price = mean(mean_total_payments))
+                                                                                          
+region_geog
+
+
+#Libreria usmap tiene el mapa de EEUU por estado
+library(usmap)
+
+statepop #en libreria usmap hay un dataframe que es la populacion para cada estado (siglas -abbr ) y nos interesa agrupar a este data frame la columna mean_total_payments
+
+names(statepop) <- c('fips','prov_state','full','pop_2015') #cambiamos el nombre de la columna abbr para prov_state para tenerla igual en statepop y region_geog
+
+statepop <- statepop %>% left_join(region_geog, by='prov_state') #juntamos region_geog y statepop
+
+plot_usmap(data = statepop, values = "mean_total_price", color = "white") + 
+  scale_fill_continuous(low='light blue', high ='dark blue',name = "Mean Total Payments", label = scales::comma) + 
+  theme(legend.position = "right")
+
 
 ```
-
-
 
 
 
