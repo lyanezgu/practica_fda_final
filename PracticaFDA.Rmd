@@ -241,6 +241,6 @@ new
 
 ```{r, message=FALSE, warning=FALSE, include=TRUE, list(width.cutoff=60), tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 
-ggplot(train, aes(drg_def,prov_state, fill=cobertura))+geom_tile()
+ggplot(train, aes(drg_def,prov_state, fill=cobertura))+geom_tile() #sad
 
 ```
