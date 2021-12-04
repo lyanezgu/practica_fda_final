@@ -154,7 +154,8 @@ head(train)
 ```
 
 
-## 5.3.2 Eliminar dolar de las ultimas 3 columnas 
+
+## 5.3.2 Cambio de tipo de variable
 
 ```{r cambiar dolares, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 
@@ -162,11 +163,16 @@ train$mean_covered_charges = as.numeric(gsub("\\$","",train$mean_covered_charges
 
 train$mean_total_payments = as.numeric(gsub("\\$","",train$mean_total_payments))
 
-train$mean_medicare_payments = as.numeric(gsub("\\$","",train$mean_medicare_payments))   
+train$mean_medicare_payments = as.numeric(gsub("\\$","",train$mean_medicare_payments))
+
+train$prov_zip = as.factor(train$prov_zip)
+
+train$prov_id = as.factor(train$prov_id)
 
 head(train)
-```
 
+str(train)
+```
 
 ## 5.4 Creando columna nueva mean_total_payments - mean_medicare_payments
 
@@ -218,29 +224,183 @@ plot_usmap(data = statepop, values = "mean_total_price", color = "white") +
 
 ```
 
-## Ideas
+#  Separar columna drg_def
 
+```{r, message=FALSE, warning=FALSE, include=TRUE, list(width.cutoff=60), tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 
-```{r nueva variabledos, message=FALSE, warning=FALSE, include=TRUE, list(width.cutoff=60), tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+#test <- data.frame(x = train$drg_def)
+
+train <-train %>% 
+  separate(data = ., col = drg_def, 
+       into = c("codigo_enf", "desc_enf"), sep = "-")
 
 train
 
-#ggplot(train, aes(drg_def)) + geom_bar()
+```
 
-#ggplot(train, aes(x=drg_def)) + geom_histogram(stat='count')
+# 10 enfermedades mas comunes
+
+```{r, message=FALSE, warning=FALSE, include=TRUE, list(width.cutoff=60), tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
+d2 <- train %>%
+  count(codigo_enf) %>%
+  top_n(10) %>%
+  arrange(n, codigo_enf) %>%
+  mutate(codigo_enf = factor(codigo_enf, levels = unique(codigo_enf)))
+
+
+q <- train %>%
+  filter(codigo_enf %in% d2$codigo_enf) %>%
+  mutate(codigo_enf = factor(codigo_enf, levels = levels(d2$codigo_enf))) %>%
+  ggplot(aes(x = codigo_enf, fill=desc_enf)) + geom_bar() + coord_flip() + theme_bw(base_size=9) + xlab("Codigo enfermedad") + 
+    ylab("Frecuencia") +
+    ggtitle("10 enfermedadas mas comunes")
+q
+```
+
+
+# 10 mas caros 
+
+```{r, message=FALSE, warning=FALSE, include=TRUE, list(width.cutoff=60), tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
+d3 <- train %>%
+  group_by(codigo_enf) %>% summarise(mean=mean(mean_total_payments)) %>% arrange(desc(mean))
+
+top_10_caras <- head(d3,10)
+top_10_caras
+
+
+q <-ggplot(data=top_10_caras, mapping = aes(x = reorder(codigo_enf,-mean),mean)) + geom_bar(stat = "identity") + theme_bw(base_size=9) + ylab("Media Total Payments") + xlab("Codigo enfermedad") + ggtitle("10 enfermedadas mas caras") + scale_y_continuous(label = scales::dollar) 
+
+q
+
+```
+
+# Grafico de calor - ratio de cobertura por estado por enfermedad
+
+```{r, message=FALSE, warning=FALSE, include=TRUE, list(width.cutoff=60), tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
+test <- top_10_caras %>% inner_join(train)
+test
+ggplot(test, aes(codigo_enf,prov_state, fill=cobertura))+geom_tile() + theme_bw(base_size=7) + scale_fill_gradient(low = "white", high = "purple")
+
+```
+
+## Correlacion 
+```{r}
+library(PerformanceAnalytics)
+
+cor(x=train$mean_total_payments, y=train$mean_medicare_payments)
+```
+
+```{r}
+with(train, plot(x=mean_total_payments, y=mean_medicare_payments, pch=20, col='blue',
+                 xlab='mean total payments', las=1,
+                 ylab='mean_medicare_payments'))
+```
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+train %>% ggplot(aes(mean_total_payments, mean_medicare_payments)) + 
+  geom_point(alpha=0.2, colour="green") + 
+  geom_smooth(formula= 'y ~ x',method = 'lm') + 
+  labs(title='Relacion entre variables total payments y medicare payments', 
+       x='mean total payments',
+       y='mean medicare payments`')
+
+```
+```{r}
+# ver si el mean total payments sigue una normal 
+train%>%
+  filter(mean_total_payments<100000 ) %>%
+  ggplot(aes(x=mean_total_payments))+ geom_histogram()
 
 
 ```
 
-```{r diez mas comunes, message=FALSE, warning=FALSE, include=TRUE, list(width.cutoff=60), tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+```{r}
+# ver si el mean total payments sigue una normal 
+train%>%
+  filter(mean_total_payments<100000 ) %>%
+  ggplot(aes(x=log10(mean_total_payments)))+ geom_histogram()
 
-new <- train %>%group_by(drg_def) %>%summarize(n = n())%>%arrange(-n)%>%head(10)
-new
+
+```
+
+
+
+```{r}
+# ver si el mean total payments sigue una normal 
+train%>%
+  filter(mean_medicare_payments<100000 ) %>%
+  ggplot(aes(x=mean_medicare_payments))+ geom_histogram()
+```
+
+```{r}
+# ver si el mean total payments sigue una normal 
+train%>%
+  filter(mean_medicare_payments<100000 ) %>%
+  ggplot(aes(x=log10(mean_medicare_payments)))+ geom_histogram()
+
+
+```
+
+
+```{r}
+# ver si el mean total payments sigue una normal 
+train%>%
+  filter(mean_medicare_payments<100000 ) %>%
+  ggplot(aes(x=copagos))+ geom_histogram()
+
+
+```
+
+
+```{r}
+# ver si el mean total payments sigue una normal 
+train%>%
+  filter(mean_medicare_payments<100000 ) %>%
+  ggplot(aes(x=log10(copagos)))+ geom_histogram()
+
+
+```
+
+```{r}
+#train %>% select(1:14) %>%
+#  na.omit() %>%
+#  ggpairs(columns = 1:13, ggplot2::aes(colour=group),cardinality_threshold=50000)
+
 ```
 
 
 ```{r, message=FALSE, warning=FALSE, include=TRUE, list(width.cutoff=60), tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+library(cowplot)
 
-ggplot(train, aes(drg_def,prov_state, fill=cobertura))+geom_tile() #sad
+train_num <- train %>% select_if(is.numeric)
+train_num
+
+p1 <- ggplot (train_num, aes(y= train_num$mean_total_payments)) + geom_boxplot(fill = "red") + scale_y_continuous(name = "dólares", labels = scales::dollar) + xlab("mean_total_payments") + ggtitle("Boxplot: mean_total_payments")
+
+p11 <- ggplot (train_num, aes(y= log10(train_num$mean_total_payments))) + geom_boxplot(fill = "red") + scale_y_continuous(name = "dólares", labels = scales::dollar) + xlab("mean_total_payments") + ggtitle("Boxplot: mean_total_payments")
+
+plot_grid(p1, p11)
+
+p2 <- ggplot (train_num, aes(y=train_num$mean_medicare_payments)) + geom_boxplot(fill = "blue") + scale_y_continuous(name = "dólares", labels = scales::dollar) + xlab("mean_medicare_payments") + ggtitle("Boxplot: mean_medicare_payments")
+
+p22 <- ggplot (train_num, aes(y= log10(train_num$mean_medicare_payments))) + geom_boxplot(fill = "blue") + scale_y_continuous(name = "dólares", labels = scales::dollar) + xlab("mean_medicare_payments") + ggtitle("Boxplot: mean_medicare_payments")
+
+plot_grid(p2, p22)
+
+p3 <- ggplot (train_num, aes(y=train_num$copagos)) + geom_boxplot(fill = "yellow") + scale_y_continuous(name = "dólares", labels = scales::dollar) + xlab("copagos") + ggtitle("Boxplot: copagos")
+
+p33 <- ggplot (train_num, aes(y=log10(train_num$copagos))) + geom_boxplot(fill = "yellow") + scale_y_continuous(name = "dólares", labels = scales::dollar) + xlab("copagos") + ggtitle("Boxplot: copagos")
+
+plot_grid(p3, p33)
+
+p4 <- ggplot (train_num, aes(y=train_num$cobertura)) + geom_boxplot(fill = "green") + scale_y_continuous(name = "% cobertura") + xlab("cobertura") + ggtitle("Boxplot: cobertura")
+
+p4
 
 ```
