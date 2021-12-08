@@ -9,9 +9,7 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 
 ```
-```{r, echo = F, message=FALSE, warning = FALSE}
-library(formatR)
-```
+
 
 # 0. Introducción 
 
@@ -32,6 +30,7 @@ El conjunto de datos elegido por el grupo se llama "Hospital Charges in America"
 ## 2.1 Paquetes
 
 ```{r librerias, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+library(formatR)
 library(readr)
 library(ggplot2)
 library(GGally)
@@ -46,7 +45,7 @@ library(cowplot)
 
 ## 2.2 Cargar los datos
 
-El conjunto de datos "Hospital Charges in America" contiene 12 columnas y 163065 filas, y lo obtenemos en formato .csv. 
+El conjunto de datos "Hospital Charges in America" contiene 12 columnas y 16.3065 filas, y lo obtenemos en formato .csv. 
 Inicialmente se han guardado los datos en un data frame llamado "hospital_charges" y se ha realizado un estudio inicial sobre su contenido utilizando la función head y summary.
 
 ```{r cargas datos, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
@@ -64,7 +63,7 @@ Utilizamos la librería missForest y generamos una semilla para que el resultado
 
 ```{r df, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 set.seed(101)
-hospital_charges <-bind_cols(hospital_charges[c(1,3,5,7,8,9,11,12)],missForest::prodNA(hospital_charges[c(-1,-3,-5,-7,-8,-9,-11,-12)],noNA=0.1))
+hospital_charges <-bind_cols(hospital_charges[c(1,3,6,7,8,11,12)],missForest::prodNA(hospital_charges[c(-1,-3,-6,-7,-8,-11,-12)],noNA=0.1))
 
 hospital_charges
 ```
@@ -99,7 +98,7 @@ test
 
 ## 5.1 Definición de las variables que componen los datos de estudio
 
-Empezando ya el análsis en profundidas del conjunto de datos que tenemos, vemo que las 12 variables que componen los datos pueden ser descritas como:
+Empezando ya el análsis en profundidad del conjunto de datos que tenemos, vemos que las 12 variables que componen los datos pueden ser descritas como:
 
 * **DRG Definition:** Grupo relativo a un diagnostico. 
 Los grupos de diagnóstico relacionado (DRG) se utilizan para clasificar la gravedad de la enfermedad en las visitas hospitalarias de pacientes hospitalizados, el riesgo de mortalidad, el pronóstico, la dificultad del tratamiento, la necesidad de intervención y la intensidad de los recursos que necesitan. El sistema DRG fue desarrollado en la Universidad de Yale en la década de 1970 para la clasificación estadística de casos hospitalarios. Realmente la variable DRG es relativa al código y la descripción que identifican el MS-DRG. Los MS-DRG son un sistema de clasificación que agrupa condiciones clínicas similares (diagnósticos) y los procedimientos proporcionados por el hospital durante la estancia. El sistema de Medicare (Sistema de Seguridad Social en EEUU) los utiliza para determinar los reembolsos para hospitales, centros de enfermería especializada y hospicios. Una estadía en el hospital puede variar de un día a 100 días. Los MS-DRG más caros tienen las estadías promedio más largas. El establecimiento del cada DRG se establece según las condiciones clínicas del paciente, necesidad de cantidades similares de recursos para pacientes hospitalizados y sexo y edad del paciente. Para ello se utiliza el sistema de DRG llamado "Medicare Severity DRGs (MS-DRGs)" para reflejar en mejor manera la severidad de la enfermedad del paciente y su consumo de recursos para su recuperación. Para clasificar el nivel de severidad de un paciente dentro del sistema "MS-DRGs" hay códigos secundarios de diagnóstico:
@@ -149,7 +148,7 @@ Se ha decidido realizar un cambio en el nombre de las variables que aparecen en 
 
 ```{r cambiar columnas 1, include=TRUE, message=FALSE, warning = FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train
-names(train) <- c('drg_def', 'prov_name', 'prov_city', 'prov_zip', 'referral_reg', 'total_discharges', 'mean_total_payments', 'mean_medicare_payments','prov_id', 'prov_address','prov_state', 'mean_covered_charges')
+names(train) <- c('drg_def', 'prov_name', 'prov_state', 'prov_zip', 'referral_reg', 'mean_total_payments', 'mean_medicare_payments','prov_id', 'prov_address','prov_city', 'total_discharges', 'mean_covered_charges')
                     
 head(train)
 ```
@@ -159,7 +158,6 @@ head(train)
 Realizamos una división de la columna "drg_ref". Separamos la columna en dos diferenciando entre código de la enfermedad y descripción de la enfermedad. Nos servirá a futuro para simplificar el análisis y visualización de los datos de interés.
 
 ```{r, message=FALSE, warning=FALSE, include=TRUE}
-#test <- data.frame(x = train$drg_def)
 
 train <-train %>% 
   separate(data = ., col = drg_def, 
@@ -218,9 +216,11 @@ region_geog
 #Libreria usmap tiene el mapa de EEUU por estado
 library(usmap)
 
-statepop #en libreria usmap hay un dataframe que es la populacion para cada estado (siglas -abbr ) y nos interesa agrupar a este data frame la columna mean_total_payments
+statepop #en libreria usmap hay un dataframe que es la populacion para cada estado 
+#(siglas -abbr ) y nos interesa agrupar a este data frame la columna mean_total_payments
 
-names(statepop) <- c('fips','prov_state','full','pop_2015') #cambiamos el nombre de la columna abbr para prov_state para tenerla igual en statepop y region_geog
+names(statepop) <- c('fips','prov_state','full','pop_2015') #cambiamos el nombre de la 
+#columna abbr para prov_state para tenerla igual en statepop y region_geog
 
 statepop <- statepop %>% left_join(region_geog, by='prov_state') #juntamos region_geog y statepop
 
@@ -229,6 +229,9 @@ plot_usmap(data = statepop, values = "mean_total_price", color = "white") +
   theme(legend.position = "right")
 ```
 
+Los estados americanos más caros para el paciente son Wyoming (copagos medio de 1983 dólares), Utah (copagos medio de 1927 dólares) y Hawái (copagos medio de 1851 dólares) 
+
+Wyoming es el estado menos poblado de EEUU (dos tercios del territorio cubiertos por sierras y montañas), los componentes de su economia difieren significativamente de los otros estados (minería y turismo) y el gobierno es dueño de 50% de sus tierras.
 
 ## 5.4.2 Top 10 enfermedades más comunes detectadas
 
@@ -239,15 +242,17 @@ d2 <- train %>%
   arrange(n, codigo_enf) %>%
   mutate(codigo_enf = factor(codigo_enf, levels = unique(codigo_enf)))
 
-
-q <- train %>%
+train %>%
   filter(codigo_enf %in% d2$codigo_enf) %>%
   mutate(codigo_enf = factor(codigo_enf, levels = levels(d2$codigo_enf))) %>%
-  ggplot(aes(x = codigo_enf, fill=desc_enf)) + geom_bar() + coord_flip() + theme_bw(base_size=9) + xlab("Codigo enfermedad") + 
+  ggplot(aes(x = codigo_enf, fill=desc_enf)) + geom_bar() + coord_flip() + 
+theme_bw(base_size=9) + xlab("Código enfermedad") + 
     ylab("Frecuencia") +
-    ggtitle("10 enfermedadas mas comunes")
-q
+    ggtitle("10 enfermedadas más comunes")
 ```
+
+El grupo DRG de mayor frecuencia es "194 - Pneumonia y Pleuresía con complicaciones/comorbilidades" con 2.424 casos. En segundo y tercer lugar tenemos las "690 - Infecciones de las vías urinarias" (2.400 casos) y "392 -Esofagitis, Gastroenteritis y Enfermedades digestivas con " (2.368 casos) con o sin complicaciones.
+
 
 ## 5.4.3 Top 10 enfermedades más caras 
 
@@ -260,23 +265,34 @@ top_10_caras <- head(d3,10)
 top_10_caras
 
 
-q <-ggplot(data=top_10_caras, mapping = aes(x = reorder(codigo_enf,-mean),mean)) + geom_bar(stat = "identity") + theme_bw(base_size=9) + ylab("Media Total Payments") + xlab("Codigo enfermedad") + ggtitle("10 enfermedadas máss caras") + scale_y_continuous(label = scales::dollar) 
+ggplot(data=top_10_caras, mapping = aes(x = reorder(codigo_enf,-mean),mean)) + geom_bar(stat = "identity", aes(fill=mean)) + theme_bw(base_size=9) + ylab("Media Total Payments") + xlab("Codigo enfermedad") + ggtitle("10 enfermedadas más caras") + scale_y_continuous(label = scales::dollar) + scale_fill_gradient(low="light blue", high="dodgerblue4")
 
-q
 
 ```
 
-## 5.4.4 Gráfico de calor - ratio de cobertura por Estado y por enfermedad
+El grupo DRG más caro es "870 - Septicemia y sepsis grave con periodo de hospitalización superior a 96 horas". Una septicemia occure cuando el sistema inmunitario se descontrola y ataca a sus proprios órganocs y tejidos. Es la complicación de una infección, siendo una urgencia médica que requiere tratamiento inmediato. El coste media del tratamiento en los EEUU es de 44.467 dólares. 
+
+El segundo y tercer grupo DRG más caros son las "853 - Infecciones y enfermedades parasitarias" (coste médio de 40.296 dólares) y "207- Enfermedades respiratorias que requieren ventilación respiratória por más de 96 horas consecutivas (coste médio de 38372.14 dólares).	
+
+## 5.4.4 Gráfico de calor - ratio de cobertura por Estado para las 10 enfermedades más caras
 
 ```{r, message=FALSE, warning=FALSE, include=TRUE}
 test <- top_10_caras %>% inner_join(train)
 test
 ggplot(test, aes(codigo_enf,prov_state, fill=cobertura))+geom_tile() + theme_bw(base_size=7) + scale_fill_gradient(low = "white", high = "purple")
+
+
 ```
+De manera general se puede decir que la tasa de cobertura de las top 10 enfermedades más caras es, en todos los estados de Estados Unidos, superior a 80% (colores morado escuro predominante en casi todo el gráfico).
+
+La tasa de cobertura para la enfermedad Septicemia es en media, para todos los estados, de 95%, siendo entonces la enfermedad más cara para el sistema público, pero con gran cobertura y pocos copagos al paciente. Lo mismo se puede observar para las Enfermedades Parasitárias (94%) y Enfermedades Respiratória (93%).
+
+En el de Wyoming, el estado donde se hay que pagar las mayores cifras de copagos, no han sido registrados casos de Septicemia o Enfermedades Respiratórias, mientras la tasa de cobertura para Enfermedades Parasitárias es de 82%.
+
 
 ## 5.4.5 Correlación entre variables
 
-```{r}
+```{r, message=FALSE, warning=FALSE, include=TRUE}
 library(PerformanceAnalytics)
 
 cor(x=train$mean_total_payments, y=train$mean_medicare_payments)
@@ -289,7 +305,7 @@ with(train, plot(x=mean_total_payments, y=mean_medicare_payments, pch=20, col='b
 ```
 
 
-```{r}
+```{r, message=FALSE, warning=FALSE, include=TRUE}
 library(dplyr)
 library(ggplot2)
 train %>% ggplot(aes(mean_total_payments, mean_medicare_payments)) + 
@@ -304,14 +320,14 @@ train %>% ggplot(aes(mean_total_payments, mean_medicare_payments)) +
 
 ## 5.4.6 Análisis de la distribución de las variables
 
-```{r}
+```{r, message=FALSE, warning=FALSE, include=TRUE}
 # ver si el mean total payments sigue una normal 
 train%>%
   filter(mean_total_payments<100000 ) %>%
   ggplot(aes(x=mean_total_payments))+ geom_histogram()
 ```
 
-```{r}
+```{r, message=FALSE, warning=FALSE, include=TRUE}
 # ver si el mean total payments sigue una normal 
 train%>%
   filter(mean_total_payments<100000 ) %>%
@@ -327,7 +343,7 @@ train%>%
   ggplot(aes(x=mean_medicare_payments))+ geom_histogram()
 ```
 
-```{r}
+```{r,message=FALSE, warning=FALSE, include=TRUE}
 # ver si el mean total payments sigue una normal 
 train%>%
   filter(mean_medicare_payments<100000 ) %>%
@@ -337,7 +353,7 @@ train%>%
 ```
 
 
-```{r}
+```{r,message=FALSE, warning=FALSE, include=TRUE}
 # ver si el mean total payments sigue una normal 
 train%>%
   filter(mean_medicare_payments<100000 ) %>%
@@ -347,7 +363,7 @@ train%>%
 ```
 
 
-```{r}
+```{r,message=FALSE, warning=FALSE, include=TRUE}
 # ver si el mean total payments sigue una normal 
 train%>%
   filter(mean_medicare_payments<100000 ) %>%
@@ -356,7 +372,7 @@ train%>%
 
 ```
 
-```{r}
+```{r,message=FALSE, warning=FALSE, include=TRUE}
 #train %>% select(1:14) %>%
 #  na.omit() %>%
 #  ggpairs(columns = 1:13, ggplot2::aes(colour=group),cardinality_threshold=50000)
