@@ -45,7 +45,7 @@ library(cowplot)
 
 ## 2.2 Cargar los datos
 
-El conjunto de datos "Hospital Charges in America" contiene 12 columnas y 16.3065 filas, y lo obtenemos en formato .csv. 
+El conjunto de datos "Hospital Charges in America" contiene 12 columnas y 163.065 filas, y lo obtenemos en formato .csv. 
 Inicialmente se han guardado los datos en un data frame llamado "hospital_charges" y se ha realizado un estudio inicial sobre su contenido utilizando la función head y summary.
 
 ```{r cargas datos, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
@@ -420,4 +420,28 @@ p4 <- ggplot (train_num, aes(y=train_num$cobertura)) + geom_boxplot(fill = "gree
 p4
 mean(train_num$cobertura)
 
+```
+
+# Regresion lineal multiple
+
+```{r}
+library(MASS)
+#attach(train)
+```
+
+```{r}
+ggplot(train, aes(x=codigo_enf, y=mean_total_payments, color=prov_state)) + 
+  geom_point() + theme_light()
+
+#https://fhernanb.github.io/libro_regresion/varcuali.html
+```
+
+```{r}
+modelo= lm(mean_total_payments~codigo_enf+mean_medicare_payments+prov_state,data=train)
+#coef(modelo)
+summary(modelo)
+```
+
+```{r}
+anova(modelo)
 ```
