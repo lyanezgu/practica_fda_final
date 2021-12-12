@@ -54,6 +54,38 @@ hospital_charges
 head(hospital_charges)
 summary(hospital_charges)
 ```
+##  Cambiar los nombres de las columnas
+
+Se ha decidido realizar un cambio en el nombre de las variables que aparecen en las columnas de los datos para así seguir un mismo patrón y a al vez evitar tener espacios que nos pueden llegar a dar problemas a futuro.
+
+
+```{r cambiar columnas 1, include=TRUE, message=FALSE, warning = FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+#cambio de nombres de las variables 
+
+names(hospital_charges) <- c('drg_def', 'prov_id', 'prov_name', 'prov_address', 'prov_city', 'prov_state', 'prov_zip','hospital_ref', 'total_discharges','mean_covered_charges', 'mean_total_payments', 'mean_medicare_payments')
+                    
+head(hospital_charges)
+```
+
+## Cambio de tipo de variable
+
+Se ha decidido eliminar el símbolo de moneda de dólar de las últimas tres columnas, transformando las columnas a tipo numérico.
+
+```{r cambiar dolares, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+hospital_charges$mean_covered_charges = as.numeric(gsub("\\$","",hospital_charges$mean_covered_charges))
+
+hospital_charges$mean_total_payments = as.numeric(gsub("\\$","",hospital_charges$mean_total_payments))
+
+hospital_charges$mean_medicare_payments = as.numeric(gsub("\\$","",hospital_charges$mean_medicare_payments))
+
+hospital_charges$prov_zip = as.factor(hospital_charges$prov_zip)
+
+hospital_charges$prov_id = as.factor(hospital_charges$prov_id)
+
+head(hospital_charges)
+
+str(hospital_charges)
+```
 
 # 3. Detección, tratamiento e imputación de datos faltantes
 
@@ -62,8 +94,11 @@ A través de la función summary empezamos comprobando que no hay datos faltante
 Utilizamos la librería missForest y generamos una semilla para que el resultado sea siempre el mismo.
 
 ```{r df, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
+hospital_charges
 set.seed(101)
-hospital_charges <-bind_cols(hospital_charges[c(1,3,6,7,8,11,12)],missForest::prodNA(hospital_charges[c(-1,-3,-6,-7,-8,-11,-12)],noNA=0.1))
+hospital_charges <-bind_cols(hospital_charges[c(1,2,3,4,5,6,7,8,11,12)],
+                             missForest::prodNA(hospital_charges[c(-1,-2,-3,-4,-5,-6,-7,-8,-11,-12)],noNA=0.1))
 
 hospital_charges
 ```
@@ -71,7 +106,7 @@ hospital_charges
 Haciendo uso de la librería VIM, analizamos un poco la estructura que tienen nuestros datos faltantes dentro de nuestra data set para ver y entender como se distribuyen.
 
 ```{r dfdos, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-summary(aggr(hospital_charges))
+summary(aggr(hospital_charges,numbers=T,sortVar=T))
 
 #referencia https://rpubs.com/sediaz/na_aggr
 ```
@@ -91,6 +126,17 @@ test <- hospital_charges[-sample,]
 train
 test
 ```
+
+
+# Imputación de datos faltantes
+
+```{r imputacion, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+#remplaza los valores faltantes de las columnas seegun valores medios de las mismas
+train$mean_covered_charges[is.na(train$mean_covered_charges)]<-mean(train$mean_covered_charges,na.rm = TRUE)
+
+train$total_discharges[is.na(train$total_discharges)]<-mean(train$total_discharges,na.rm = TRUE)
+```
+
 
 
 ### 5. EDA - Análisis exploratorio de datos
@@ -140,18 +186,7 @@ El objetivo final del proyecto es llegar a un modelo que permita recomendar cual
 Para esta primera entrega, el objetivo es realizar el tratamiento de datos adecuado y seleccionar las mejores variables que servirán para llegar al modelo de Machine Learning deseado. Se realizará de la misma manera un ajuste, interpretación y diagnosis del modelo de regresión lineal múltiple, en base a las variables que mejor expliquen los datos.
 
 
-# 5.3. Transformaciones de variables cuantitativas y procesado de variables cualitativas - Limpieza de datos
-
-## 5.3.1 Cambiar los nombres de las columnas
-
-Se ha decidido realizar un cambio en el nombre de las variables que aparecen en las columnas de los datos para así seguir un mismo patrón y a al vez evitar tener espacios que nos pueden llegar a dar problemas a futuro.
-
-```{r cambiar columnas 1, include=TRUE, message=FALSE, warning = FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-train
-names(train) <- c('drg_def', 'prov_name', 'prov_state', 'prov_zip', 'referral_reg', 'mean_total_payments', 'mean_medicare_payments','prov_id', 'prov_address','prov_city', 'total_discharges', 'mean_covered_charges')
-                    
-head(train)
-```
+# 5.3. Transformaciones de variables cuantitativas y procesado de variables cualitativas
 
 ## 5.3.2 División de la columna drg_def
 
@@ -165,25 +200,6 @@ train <-train %>%
 train
 ```
 
-## 5.3.3 Cambio de tipo de variable
-
-Se ha decidido eliminar el símbolo de moneda de dólar de las últimas tres columnas, transformando las columnas a tipo numérico.
-
-```{r cambiar dolares, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-train$mean_covered_charges = as.numeric(gsub("\\$","",train$mean_covered_charges))
-
-train$mean_total_payments = as.numeric(gsub("\\$","",train$mean_total_payments))
-
-train$mean_medicare_payments = as.numeric(gsub("\\$","",train$mean_medicare_payments))
-
-train$prov_zip = as.factor(train$prov_zip)
-
-train$prov_id = as.factor(train$prov_id)
-
-head(train)
-
-str(train)
-```
 
 ## 5.3.4 Creando columna nueva relativa a los copagos que deben realizar los pacientes: mean_total_payments - mean_medicare_payments
 
@@ -200,9 +216,51 @@ Nueva variable representativa de la tasa de cobertura que ofrece el sistema de s
 
 ```{r nueva variabledos, message=FALSE, warning=FALSE, include=TRUE}
 train <- train %>% mutate(cobertura = percent(mean_medicare_payments/mean_total_payments))
+
 train
 ```
 
+```{r}
+#creamos variable grupo de estados por copagos
+
+train <- train %>% group_by(prov_state) %>% 
+  mutate(mean_copagos_state=mean(copagos))
+
+train
+
+```
+
+```{r}
+#creamos variable grupo de enfermedades por copago
+
+train <- train %>% group_by(codigo_enf) %>% 
+  mutate(mean_copagos_enf=mean(copagos))
+
+summary(train)
+
+```
+```{r}
+#nueva variable agrupando estados por media de copagos
+train<-train %>%
+    mutate(categoria_state = case_when(mean_copagos_state >= 1250 ~ 'High',
+                                  mean_copagos_state >= 1150 ~ 'Mid',
+                                  TRUE ~ 'Low'))
+train
+
+ggplot(train)+geom_bar(aes(x=categoria_state))
+```
+
+
+```{r}
+#nueva variable agrupando enfermedades por media de copagos
+train<-train %>%
+    mutate(categoria_enf = case_when(mean_copagos_enf >= 1170 ~ 'High',
+                                  mean_copagos_enf >= 1000 ~ 'Mid',
+                                  TRUE ~ 'Low'))
+train
+
+ggplot(train)+geom_bar(aes(x=categoria_enf))
+```
 # 5.4 Análisis exhaustivo de los datos críticos para el estudio
 
 ## 5.4.1 Gráfico EEUU: valor de los copagos por Estados
@@ -422,6 +480,16 @@ mean(train_num$cobertura)
 
 ```
 
+```{r}
+#https://rstudio-pubs-static.s3.amazonaws.com/386777_ce8f66f8a49a403da721af05d06b2804.html
+#pairs(train_num)
+#summary(train_num)
+
+#cor(x=train$copagos,y=train$mean_total_payments,method = "pearson")
+#str(train_num)
+res <- cor(train_num)
+round(res, 2)
+```
 # Regresion lineal multiple
 
 ```{r}
@@ -443,5 +511,6 @@ summary(modelo)
 ```
 
 ```{r}
-#anova(modelo)
+anova(modelo)
 ```
+
