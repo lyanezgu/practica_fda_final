@@ -197,7 +197,12 @@ Realizamos una división de la columna "drg_ref". Separamos la columna en dos di
 train <-train %>% 
   separate(data = ., col = drg_def, 
        into = c("codigo_enf", "desc_enf"), sep = "-")
+
+train$codigo_enf <- as.factor(train$codigo_enf)
+
 train
+
+str(train)
 ```
 
 
@@ -440,7 +445,7 @@ train%>%
 ## 5.4.7 Boxplot - análisis de la variables de relevancia y de los atípicos observados
 
 ```{r, message=FALSE, warning=FALSE, include=TRUE}
-train_num <- train %>% select_if(is.numeric)
+train_num <- Filter(is.numeric, train)
 train_num
 ```
 
@@ -487,6 +492,7 @@ mean(train_num$cobertura)
 
 #cor(x=train$copagos,y=train$mean_total_payments,method = "pearson")
 #str(train_num)
+
 res <- cor(train_num)
 round(res, 2)
 ```
