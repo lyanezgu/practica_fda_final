@@ -443,5 +443,5 @@ summary(modelo)
 ```
 
 ```{r}
-anova(modelo)
+#anova(modelo)
 ```
