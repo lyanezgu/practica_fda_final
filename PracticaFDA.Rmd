@@ -230,7 +230,7 @@ train
 #creamos variable grupo de estados por copagos
 
 train <- train %>% group_by(prov_state) %>% 
-  mutate(mean_copagos_state=mean(copagos))
+  mutate(mean_total_state=mean(mean_total_payments))
 
 train
 
@@ -240,7 +240,7 @@ train
 #creamos variable grupo de enfermedades por copago
 
 train <- train %>% group_by(codigo_enf) %>% 
-  mutate(mean_copagos_enf=mean(copagos))
+  mutate(mean_total_enf=mean(mean_total_payments))
 
 summary(train)
 
@@ -248,8 +248,8 @@ summary(train)
 ```{r}
 #nueva variable agrupando estados por media de copagos
 train<-train %>%
-    mutate(categoria_state = case_when(mean_copagos_state >= 1250 ~ 'High',
-                                  mean_copagos_state >= 1150 ~ 'Mid',
+    mutate(categoria_state = case_when(mean_total_state >= 10300  ~ 'High',
+                                  mean_total_state >= 8900 ~ 'Mid',
                                   TRUE ~ 'Low'))
 train
 
@@ -260,8 +260,8 @@ ggplot(train)+geom_bar(aes(x=categoria_state))
 ```{r}
 #nueva variable agrupando enfermedades por media de copagos
 train<-train %>%
-    mutate(categoria_enf = case_when(mean_copagos_enf >= 1170 ~ 'High',
-                                  mean_copagos_enf >= 1000 ~ 'Mid',
+    mutate(categoria_enf = case_when(mean_total_enf >= 11000 ~ 'High',
+                                  mean_total_enf >= 6000 ~ 'Mid',
                                   TRUE ~ 'Low'))
 train
 
@@ -501,7 +501,21 @@ round(res, 2)
 corrplot(res, type = "upper", order = "hclust", 
          tl.col = "black", tl.srt = 45)
 ```
+```{r}
 
+##ggpairs(train, lower = list(continuous = "smooth"), 
+##        diag = list(continuous = "bar"), axisLabels = "none", cardinality_threshold=5000)
+
+#pairs(x = train_num)
+```
+
+```{r}
+ggplot(data = train, mapping=aes(x = categoria_state, y = log10(copagos), color=categoria_state)) +
+geom_boxplot() +
+geom_jitter(width = 0.1) +
+theme_bw() + theme(legend.position = "none")
+
+```
 # 7. Regresion lineal multiple
 
 ```{r}
@@ -517,7 +531,8 @@ ggplot(train, aes(x=codigo_enf, y=mean_total_payments, color=prov_state)) +
 ```
 
 ```{r}
-modelo= lm(mean_total_payments~codigo_enf+mean_medicare_payments+prov_state,data=train)
+modelo= lm(copagos~categoria_state+categoria_enf+cobertura
+           +mean_total_payments,data=train)
 #coef(modelo)
 summary(modelo)
 ```
