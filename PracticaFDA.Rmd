@@ -259,6 +259,11 @@ train
 
 ggplot(train)+geom_bar(aes(x=categoria_enf))
 ```
+
+```{r}
+res <- model.matrix(~categoria_state, data = train)
+head(res[, -1])
+```
 ## 6.4. Análisis exhaustivo de los datos críticos para el estudio
 
 ### 6.4.1. Gráfico EEUU: valor de los copagos por Estados
@@ -514,8 +519,8 @@ corrplot(res, type = "upper", order = "hclust",
 ```
 ```{r}
 
-##ggpairs(train, lower = list(continuous = "smooth"), 
-##        diag = list(continuous = "bar"), axisLabels = "none", cardinality_threshold=5000)
+#ggpairs(train_num, lower = list(continuous = "smooth"), 
+#        diag = list(continuous = "bar"), axisLabels = "none", cardinality_threshold=5000)
 
 #pairs(x = train_num)
 ```
@@ -533,21 +538,55 @@ theme_bw() + theme(legend.position = "none")
 library(MASS)
 #attach(train)
 ```
+## 7.1. Seleccion de variables para modelo de regresión
+
+Para la seleccion de variables para nuestro modelo usaremos la técnica forward stepwise 
 
 ```{r}
-ggplot(train, aes(x=codigo_enf, y=mean_total_payments, color=prov_state)) + 
-  geom_point() + theme_light()
-
-#https://fhernanb.github.io/libro_regresion/varcuali.html
-```
-
-```{r}
-modelo= lm(copagos~categoria_state+categoria_enf+cobertura+mean_total_payments+total_discharges+mean_covered_charges,data=train)
+modelo_1= lm(copagos~categoria_state+categoria_enf+log(cobertura),data=train)
 #coef(modelo)
-summary(modelo)
+summary(modelo_1)
 ```
 
 ```{r}
-anova(modelo)
+modelo_2= lm(copagos~categoria_state+categoria_enf+cobertura+mean_covered_charges,data=train)
+#coef(modelo)
+summary(modelo_2)
 ```
+```{r}
+modelo_3= lm(copagos~categoria_state+categoria_enf+
+               mean_medicare_payments,data=train)
+#coef(modelo)
+summary(modelo_3)
+```
+
+```{r}
+modelo_4= lm(copagos~categoria_state+categoria_enf+cobertura+
+               mean_total_payments+total_discharges+mean_covered_charges,data=train)
+#coef(modelo)
+summary(modelo_4)
+```
+
+
+```{r}
+library(ggfortify)
+autoplot(modelo_2)
+```
+
+```{r}
+#medimos independencia entre los residuos
+#entonces no rechazamos la  hipotesis nula y podemos asumir que los residuos no presentan autcorrelacion 
+library(lmtest)
+dwtest(modelo_2)
+```
+
+```{r}
+#scale-location-homocedasticidad
+#rechazamos la hipotesis nula que la varianza de los errores ees constante
+bptest(modelo_2)
+```
+En el gráfico de Residuos vs. Ajustes se observa que la media de los residuos es cercana a cero, luego la linealidad del modelo no se viola. Sin embargo, hay claro patrón de embudo, lo que indica que se viola el principio de homocedasticidad del modelo. Es decir, la varianza de los residuos no es constante y el ajuste del modelo no es adecuado. También se señalan algunos puntos candidatos a ser outliers.
+
+Con el Q-Q plot vemos que los residuos no siguen una distribución normal en las colas. Por tanto, no se puede asumir que los estimadores de los coeficientes tengan una distribución normal. Del gráfico de residuals vs leverage, observamos que hay puntos con alto leverage pero ninguno cae fuera de los límites de la distancia de Cook.
+
 
