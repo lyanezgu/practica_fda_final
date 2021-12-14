@@ -323,19 +323,23 @@ plot_usmap(data = statepop3, values = "mean_total_cost", color = "white") +
 ### 6.4.3. Top 10 enfermedades más comunes detectadas
 
 ```{r, message=FALSE, warning=FALSE, include=TRUE}
+
 d2 <- train %>%
-  count(codigo_enf) %>%
-  top_n(10) %>%
-  arrange(n, codigo_enf) %>%
-  mutate(codigo_enf = factor(codigo_enf, levels = unique(codigo_enf)))
+group_by(codigo_enf) %>% summarise(n = n()) %>% arrange(desc(n)) %>% mutate(codigo_enf=factor(codigo_enf, codigo_enf))
+
+top_10_comunes <- head(d2,10)
 
 train %>%
-  filter(codigo_enf %in% d2$codigo_enf) %>%
-  mutate(codigo_enf = factor(codigo_enf, levels = levels(d2$codigo_enf))) %>%
+  filter(codigo_enf %in% top_10_comunes$codigo_enf) %>%
+  mutate(codigo_enf = factor(codigo_enf, levels = levels(top_10_comunes$codigo_enf))) %>%
   ggplot(aes(x = codigo_enf, fill=desc_enf)) + geom_bar() + coord_flip() + 
 theme_bw(base_size=9) + xlab("Código enfermedad") + 
     ylab("Frecuencia") +
     ggtitle("10 enfermedadas más comunes")
+
+
+
+
 ```
 
 El grupo DRG de mayor frecuencia es "194 - Pneumonia y Pleuresía con complicaciones/comorbilidades" con 2.424 casos. En segundo y tercer lugar tenemos las "690 - Infecciones de las vías urinarias" (2.400 casos) y "392 -Esofagitis, Gastroenteritis y Enfermedades digestivas con " (2.368 casos) con o sin complicaciones.
