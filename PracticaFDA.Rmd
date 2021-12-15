@@ -593,4 +593,170 @@ En el gráfico de Residuos vs. Ajustes se observa que la media de los residuos e
 
 Con el Q-Q plot vemos que los residuos no siguen una distribución normal en las colas. Por tanto, no se puede asumir que los estimadores de los coeficientes tengan una distribución normal. Del gráfico de residuals vs leverage, observamos que hay puntos con alto leverage pero ninguno cae fuera de los límites de la distancia de Cook.
 
+#-----------------------------------parte regresion luisa---------------------#
 
+# 8. Regresion lineal multiple
+
+## 8.1. Ajuste de modelo de regresión
+
+Ajustamos un modelo de regresión lineal mútiple con el que vamos a predecir el valor de la variable copagos a partir de las siguientes variablesindependientes(categoria_state,categoria_enf,cobertura+mean_covered_charges,y total_discharges).
+```{r}
+
+modelo= lm(copagos~categoria_state+categoria_enf+cobertura
+           +mean_covered_charges+total_discharges,data=train)
+
+summary(modelo)
+```
+## 8.2. Seleccion de variables para modelo de regresión
+Para la selección de variables se utiliza el método de la selecció por pasos
+```{r}
+library(MASS)
+#metodo de selección por pasos e indica las variables que son significativas
+seleccion=stepAIC(modelo,direction = c("both"))
+
+```
+
+```{r}
+#me da informacion unicamente del mejor modelo
+summary(seleccion)
+```
+
+Nos quedamos con el modelo seleccionado como el mejor para la regresión según el método utilizado anteriormente
+```{r}
+#indico cual es el mejor mocelo q se selelccionó con el método usado anteriormente
+mejor_modelo=lm(copagos~categoria_state+categoria_enf+cobertura
+           +mean_covered_charges+total_discharges,data=train)
+
+summary(mejor_modelo)
+```
+
+## 8.3 Diagnosis del modelo según el cumplimiento de los siguientes supuestos
+
+## Linealidad de los residuos
+Como se puede ver en el resultado la media de los residuos es casi cero por lo que tendríamos linealidad
+
+```{r}
+#comprobamos si la media de los errores es igual a cero o se aproxima
+mean(mejor_modelo$residuals)
+```
+
+También podemos comprobar graficamente la linealidad y como se puede ver en la gráfica la línea roja está muy cerca de la línea ideal unicamente tiene una desviación en la cola derecha  y pueden ser por los outliers.
+```{r}
+#forma grafico 1
+plot(mejor_modelo,1)
+#forma grafico 2 que te muestra lo mismo 
+library(ggfortify)
+autoplot(mejor_modelo,1)
+
+```
+
+##  Intervalos de confianza
+Determinamos los intervalos de confianza para las observaciones de nuestros datos
+```{r}
+#determino los intervalos de confiianza para las observaciones
+intervalos = predict(mejor_modelo,interval = "confidence",level = 0.95)
+print(intervalos)
+```
+
+##  Tabla anova
+La tabla anova nos muestra la significación de la regresión, en nuestro caso se puede ver en los resultados que la variable total_discharge no es significativa para el modelo ya que tiene un p_valor > 0.05
+
+```{r}
+#nos muestra la significación de la regresión, en nuestro caso total_discharge no es significativa
+#para el modelo
+anova=aov(mejor_modelo)
+summary(anova)
+```
+
+
+## Normalidad de los residuos
+
+Primero se comprueba la normalidad de los residuos, pero al usar Shapiro test solo permite usar las 5000 perimeas muestras de los residuos, así que también uso Anderson-Darling para comparar resultados. Como se comprueba mas adelante el p_value < 0.05 por tanto se rechaza la hipotesis nula de que los residuos siguen una distriibución normal.
+
+Shapiro
+```{r}
+#muestras_residuos=resid(mejor_modelo)
+#obtengo la ditribucion de los residuos estandarizados
+muestras_residuos1=studres(mejor_modelo)
+residual_norm=shapiro.test(muestras_residuos1[0:5000])
+residual_norm
+```
+
+Anderson-Darling
+```{r}
+#install.packages('nortest')
+library(nortest)
+residual_anderson=ad.test(muestras_residuos1)
+residual_anderson
+```
+
+Este supuesto de normalidad de los residuos también se puede comprobar graficamente y como se ve en la gráfica nuestros datos se separan en las colas de la línea principal y eso nos  puede indicar que los residuos no siguen una diatribución normal.
+
+```{r}
+
+#estas tres graficas te muestran lo mismo
+plot(mejor_modelo,2)
+
+autoplot(mejor_modelo,2)
+
+hist(muestras_residuos1, freq=FALSE,main="Distribución de los residuos estandarizados")
+xfit<-seq(min(muestras_residuos1),max(muestras_residuos1),length=40)
+yfit<-dnorm(xfit)
+lines(xfit,yfit)
+```
+
+### Homocedasticidad
+Vamos a comprobar la hocedasticidad( que los residuos tengan una varianza constante).
+Como podemos ver en los resultados p_value < 0.05 por tanto se rechaza la hipotesis nula y esto indica que la varianza no es constante para este modelo de regresion lineal(esto es un problema). Podemos concluir que este modelo matemático no es adecuado.
+
+```{r}
+#https://fhernanb.github.io/libro_regresion/homo.html
+#otra prueba para comprobar homocedes
+library(car)
+ncvTest(mejor_modelo)
+
+```
+
+También podemos comprobar gráficamente la hocedasticidad, sería bueno que la línea roja sea lo más recta/horizontal posible.
+
+```{r}
+plot(mejor_modelo,3)
+
+autoplot(mejor_modelo,3)
+
+```
+
+
+### Independencia de los residuos
+
+Como se puede ver en los resultados el p_value > 0.05 por lo que aceptamos la Ho de que hay independencia.
+
+```{r}
+
+durbinWatsonTest(mejor_modelo)
+
+```
+
+Se puede comprobar la independencia de los residuos gráficamente y como se observa no se ven patrónes extraños y esto nos puede indicar que hay independencia en los residuos.
+
+```{r}
+
+plot(mejor_modelo$resid)
+
+acf(mejor_modelo$residuals)
+
+```
+
+### Nota:
+Existe una forma de ver un resumen de si se cumplen o no los supuestos, pero es mejor hacerlo paso a paso
+
+```{r}
+library(gvlma)
+gvlma(mejor_modelo)
+
+```
+Se puede graficar todo a la vez 
+
+```{r}
+plot(mejor_modelo)
+```
