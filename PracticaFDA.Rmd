@@ -40,6 +40,12 @@ library(formattable)
 library(usmap)
 library(cowplot)
 library(corrplot)
+library(MASS)
+library(ggfortify)
+library(nortest)
+library(car)
+library(lmtest)
+library(PerformanceAnalytics)
 ```
 
 ## 2.2. Cargar los datos
@@ -202,7 +208,6 @@ str(train)
 ### 6.3.2. Creando columna nueva relativa a los copagos que deben realizar los pacientes: mean_total_payments - mean_medicare_payments
 
 Nueva variable representativa del valor de los copagos que debe realizar el paciente o su seguro privado (en caso de contar con uno), para completar, junto a lo que cubre el Estado con el Medicare, el coste total de la intervención hospitalaria.
-
 ```{r nueva variable, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train <- train %>% mutate(copagos = mean_total_payments - mean_medicare_payments)
 train
@@ -211,7 +216,6 @@ train
 ### 6.3.3. Creando columna nueva relativa a la tasa de cobertura de la Seguridad Social estadounidense: mean_medicare_payments/mean_total_payments
 
 Nueva variable representativa de la tasa de cobertura que ofrece el sistema de salud de la Seguridad Social americana según el hospital, el grupo de diagnóstico y la gravedad del paciente. Nos ayudamos para ello de la librería formattable, obteniendo resultados en forma de porcentaje de cobertura sobre el total a pagar al hospital.
-
 ```{r nueva variabledos, message=FALSE, warning=FALSE, include=TRUE}
 train <- train %>% mutate(cobertura = percent(mean_medicare_payments/mean_total_payments))
 train
@@ -222,7 +226,6 @@ train
 ```{r}
 train <- train %>% group_by(prov_state) %>% 
   mutate(mean_total_state=mean(mean_total_payments))
-
 train
 ```
 
@@ -237,6 +240,7 @@ summary(train)
 
 ### 6.3.6. Variable categórica dummy: categoria_state -> niveles alto, medio y bajo
 
+Creamos nueva variable agrupando los Estados por niveles según la variable "mean_total_state" (= Media por Estado según mean_total_payments)
 ```{r}
 #nueva variable agrupando estados por media de copagos
 train<-train %>%
@@ -248,9 +252,15 @@ train
 ggplot(train)+geom_bar(aes(x=categoria_state))
 ```
 
-### 6.3.7. Variable categórica dummy: categoria_enf -> niveles alto, medio y bajo
 ```{r}
-#nueva variable agrupando enfermedades por media de copagos
+res <- model.matrix(~categoria_state, data = train)
+head(res[, -1])
+```
+
+### 6.3.7. Variable categórica dummy: categoria_enf -> niveles alto, medio y bajo
+
+Creamos nueva variable agrupando las enfermedades por niveles según la variable "mean_total_enf" (= Media por enfermedad según mean_total_payments)
+```{r}
 train<-train %>%
     mutate(categoria_enf = case_when(mean_total_enf >= 13000 ~ 'High',
                                   mean_total_enf >= 5500 ~ 'Mid',
@@ -261,9 +271,10 @@ ggplot(train)+geom_bar(aes(x=categoria_enf))
 ```
 
 ```{r}
-res <- model.matrix(~categoria_state, data = train)
-head(res[, -1])
+res2 <- model.matrix(~categoria_enf, data = train)
+head(res2[, -1])
 ```
+
 ## 6.4. Análisis exhaustivo de los datos críticos para el estudio
 
 ### 6.4.1. Gráfico EEUU: valor de los copagos por Estados
@@ -273,9 +284,6 @@ head(res[, -1])
 
 region_geog <- train %>% group_by(prov_state) %>% summarise (mean_total_price = mean(copagos))
 region_geog
-
-#Libreria usmap tiene el mapa de EEUU por estado
-library(usmap)
 
 statepop #en libreria usmap hay un dataframe que es la populacion para cada estado 
 #(siglas -abbr ) y nos interesa agrupar a este data frame la columna mean_total_payments
@@ -303,9 +311,6 @@ Wyoming es el estado menos poblado de EEUU (dos tercios del territorio cubiertos
 region_geog_2 <- train %>% group_by(prov_state) %>% summarise (mean_total_cost = mean(mean_total_payments))
 region_geog_2
 
-#Libreria usmap tiene el mapa de EEUU por estado
-library(usmap)
-
 statepop #en libreria usmap hay un dataframe que es la populacion para cada estado 
 #(siglas -abbr ) y nos interesa agrupar a este data frame la columna mean_total_payments
 
@@ -323,7 +328,6 @@ plot_usmap(data = statepop3, values = "mean_total_cost", color = "white") +
 ### 6.4.3. Top 10 enfermedades más comunes detectadas
 
 ```{r, message=FALSE, warning=FALSE, include=TRUE}
-
 d2 <- train %>%
 group_by(codigo_enf) %>% summarise(n = n()) %>% arrange(desc(n)) %>% mutate(codigo_enf=factor(codigo_enf, codigo_enf))
 
@@ -336,29 +340,22 @@ train %>%
 theme_bw(base_size=9) + xlab("Código enfermedad") + 
     ylab("Frecuencia") +
     ggtitle("10 enfermedadas más comunes")
-
-
-
-
 ```
 
-El grupo DRG de mayor frecuencia es "194 - Pneumonia y Pleuresía con complicaciones/comorbilidades" con 2.424 casos. En segundo y tercer lugar tenemos las "690 - Infecciones de las vías urinarias" (2.400 casos) y "392 -Esofagitis, Gastroenteritis y Enfermedades digestivas con " (2.368 casos) con o sin complicaciones.
+El grupo DRG de mayor frecuencia es "194 - Pneumonia y Pleuresía con complicaciones/patolog
+ias previas" (nivel medio de severidad) con 2.424 casos. En segundo y tercer lugar tenemos las "690 - Infecciones de las vías urinarias" (2.400 casos) y "392 -Esofagitis, Gastroenteritis y Enfermedades digestivas con " (2.368 casos) con o sin complicaciones.
 
 
 ### 6.4.4. Top 10 enfermedades más caras 
 
 ```{r, message=FALSE, warning=FALSE, include=TRUE}
-
 d3 <- train %>%
   group_by(codigo_enf) %>% summarise(mean=mean(mean_total_payments)) %>% arrange(desc(mean))
 
 top_10_caras <- head(d3,10)
 top_10_caras
 
-
 ggplot(data=top_10_caras, mapping = aes(x = reorder(codigo_enf,-mean),mean)) + geom_bar(stat = "identity", aes(fill=mean)) + theme_bw(base_size=9) + ylab("Media Total Payments") + xlab("Codigo enfermedad") + ggtitle("10 enfermedadas más caras") + scale_y_continuous(label = scales::dollar) + scale_fill_gradient(low="light blue", high="dodgerblue4")
-
-
 ```
 
 El grupo DRG más caro es "870 - Septicemia y sepsis grave con periodo de hospitalización superior a 96 horas". Una septicemia occure cuando el sistema inmunitario se descontrola y ataca a sus proprios órganocs y tejidos. Es la complicación de una infección, siendo una urgencia médica que requiere tratamiento inmediato. El coste media del tratamiento en los EEUU es de 44.467 dólares. 
@@ -371,8 +368,6 @@ El segundo y tercer grupo DRG más caros son las "853 - Infecciones y enfermedad
 test <- top_10_caras %>% inner_join(train)
 test
 ggplot(test, aes(codigo_enf,prov_state, fill=cobertura))+geom_tile() + theme_bw(base_size=7) + scale_fill_gradient(low = "white", high = "purple")
-
-
 ```
 De manera general se puede decir que la tasa de cobertura de las top 10 enfermedades más caras es, en todos los estados de Estados Unidos, superior a 80% (colores morado escuro predominante en casi todo el gráfico).
 
@@ -384,8 +379,6 @@ En el de Wyoming, el estado donde se hay que pagar las mayores cifras de copagos
 ### 6.4.6. Correlación entre variables
 
 ```{r, message=FALSE, warning=FALSE, include=TRUE}
-library(PerformanceAnalytics)
-
 cor(x=train$mean_total_payments, y=train$mean_medicare_payments)
 ```
 
@@ -395,80 +388,60 @@ with(train, plot(x=mean_total_payments, y=mean_medicare_payments, pch=20, col='b
                  ylab='mean_medicare_payments'))
 ```
 
-
 ```{r, message=FALSE, warning=FALSE, include=TRUE}
-library(dplyr)
-library(ggplot2)
 train %>% ggplot(aes(mean_total_payments, mean_medicare_payments)) + 
   geom_point(alpha=0.2, colour="green") + 
   geom_smooth(formula= 'y ~ x',method = 'lm') + 
   labs(title='Relacion entre variables total payments y medicare payments', 
        x='mean total payments',
        y='mean medicare payments`')
-
 ```
 
 
 ### 6.4.7. Análisis de la distribución de las variables
 
+* Queremos ver si la variable **"mean_total_payments"** sigue una distribución normal
 ```{r, message=FALSE, warning=FALSE, include=TRUE}
-# ver si el mean total payments sigue una normal 
 train%>%
   filter(mean_total_payments<100000 ) %>%
   ggplot(aes(x=mean_total_payments))+ geom_histogram()
 ```
 
+Analizamos la normalidad de la misma variable pero utilizando logaritmos
 ```{r, message=FALSE, warning=FALSE, include=TRUE}
-# ver si el mean total payments sigue una normal 
 train%>%
   filter(mean_total_payments<100000 ) %>%
   ggplot(aes(x=log10(mean_total_payments)))+ geom_histogram()
 ```
 
-
-
+* Ahora queremos ver si la variable **"mean_medicare_payments"** sigue una distribución normal
 ```{r}
-# ver si el mean total payments sigue una normal 
 train%>%
   filter(mean_medicare_payments<100000 ) %>%
   ggplot(aes(x=mean_medicare_payments))+ geom_histogram()
 ```
 
+Analizamos la normalidad de la misma variable pero utilizando logaritmos
 ```{r,message=FALSE, warning=FALSE, include=TRUE}
-# ver si el mean total payments sigue una normal 
 train%>%
   filter(mean_medicare_payments<100000 ) %>%
   ggplot(aes(x=log10(mean_medicare_payments)))+ geom_histogram()
-
-
 ```
 
-
+* Ahora queremos ver si la variable **"copagos"** sigue una distribución normal
 ```{r,message=FALSE, warning=FALSE, include=TRUE}
-# ver si el mean total payments sigue una normal 
 train%>%
   filter(mean_medicare_payments<100000 ) %>%
   ggplot(aes(x=copagos))+ geom_histogram()
-
-
 ```
 
-
+Analizamos la normalidad de la misma variable pero utilizando logaritmos
 ```{r,message=FALSE, warning=FALSE, include=TRUE}
-# ver si el mean total payments sigue una normal 
 train%>%
   filter(mean_medicare_payments<100000 ) %>%
   ggplot(aes(x=log10(copagos)))+ geom_histogram()
-
-
 ```
 
-```{r,message=FALSE, warning=FALSE, include=TRUE}
-#train %>% select(1:14) %>%
-#  na.omit() %>%
-#  ggpairs(columns = 1:13, ggplot2::aes(colour=group),cardinality_threshold=50000)
-
-```
 
 ### 6.4.8. Boxplot - análisis de la variables de relevancia y de los atípicos observados
 
@@ -484,7 +457,6 @@ p11 <- ggplot (train_num, aes(y= log10(train_num$mean_total_payments))) + geom_b
 
 plot_grid(p1, p11)
 mean(train_num$mean_total_payments)
-
 ```
 
 ```{r, message=FALSE, warning=FALSE, include=TRUE}
@@ -510,10 +482,10 @@ p4 <- ggplot (train_num, aes(y=train_num$cobertura)) + geom_boxplot(fill = "gree
 
 p4
 mean(train_num$cobertura)
-
 ```
 
 ### 6.4.9. Análisis de correlación entre variables
+
 ```{r}
 res <- cor(train_num)
 round(res, 2)
@@ -521,122 +493,79 @@ round(res, 2)
 corrplot(res, type = "upper", order = "hclust", 
          tl.col = "black", tl.srt = 45)
 ```
-```{r}
-
-#ggpairs(train_num, lower = list(continuous = "smooth"), 
-#        diag = list(continuous = "bar"), axisLabels = "none", cardinality_threshold=5000)
-
-#pairs(x = train_num)
-```
 
 ```{r}
 ggplot(data = train, mapping=aes(x = categoria_state, y = log10(copagos), color=categoria_state)) +
 geom_boxplot() +
 geom_jitter(width = 0.1) +
 theme_bw() + theme(legend.position = "none")
-
 ```
+
+
+```{r}
+ggplot(data = train, mapping=aes(x = categoria_enf, y = log10(copagos), color=categoria_enf)) +
+geom_boxplot() +
+geom_jitter(width = 0.1) +
+theme_bw() + theme(legend.position = "none")
+```
+
 # 7. Regresion lineal multiple
 
-```{r}
-library(MASS)
-#attach(train)
-```
-## 7.1. Seleccion de variables para modelo de regresión
+## 7.1. Ajuste del modelo de regresión
 
-Para la seleccion de variables para nuestro modelo usaremos la técnica forward stepwise 
+Ajustamos un modelo de regresión lineal mútiple con el que vamos a predecir el valor de la variable copagos a partir de las siguientes variables independientes(categoria_state,categoria_enf,cobertura+mean_covered_charges,y total_discharges).
 
 ```{r}
-modelo_1= lm(copagos~categoria_state+categoria_enf+log(cobertura),data=train)
-#coef(modelo)
-summary(modelo_1)
-```
-
-```{r}
-modelo_2= lm(copagos~categoria_state+categoria_enf+cobertura+mean_covered_charges,data=train)
-#coef(modelo)
-summary(modelo_2)
-```
-```{r}
-modelo_3= lm(copagos~categoria_state+categoria_enf+
-               mean_medicare_payments,data=train)
-#coef(modelo)
-summary(modelo_3)
-```
-
-```{r}
-modelo_4= lm(copagos~categoria_state+categoria_enf+cobertura+
-               mean_total_payments+total_discharges+mean_covered_charges,data=train)
-#coef(modelo)
-summary(modelo_4)
-```
-
-
-```{r}
-library(ggfortify)
-autoplot(modelo_2)
-```
-
-```{r}
-#medimos independencia entre los residuos
-#entonces no rechazamos la  hipotesis nula y podemos asumir que los residuos no presentan autcorrelacion 
-library(lmtest)
-dwtest(modelo_2)
-```
-
-```{r}
-#scale-location-homocedasticidad
-#rechazamos la hipotesis nula que la varianza de los errores ees constante
-bptest(modelo_2)
-```
-En el gráfico de Residuos vs. Ajustes se observa que la media de los residuos es cercana a cero, luego la linealidad del modelo no se viola. Sin embargo, hay claro patrón de embudo, lo que indica que se viola el principio de homocedasticidad del modelo. Es decir, la varianza de los residuos no es constante y el ajuste del modelo no es adecuado. También se señalan algunos puntos candidatos a ser outliers.
-
-Con el Q-Q plot vemos que los residuos no siguen una distribución normal en las colas. Por tanto, no se puede asumir que los estimadores de los coeficientes tengan una distribución normal. Del gráfico de residuals vs leverage, observamos que hay puntos con alto leverage pero ninguno cae fuera de los límites de la distancia de Cook.
-
-#-----------------------------------parte regresion luisa---------------------#
-
-# 8. Regresion lineal multiple
-
-## 8.1. Ajuste de modelo de regresión
-
-Ajustamos un modelo de regresión lineal mútiple con el que vamos a predecir el valor de la variable copagos a partir de las siguientes variablesindependientes(categoria_state,categoria_enf,cobertura+mean_covered_charges,y total_discharges).
-```{r}
-
 modelo= lm(copagos~categoria_state+categoria_enf+cobertura
            +mean_covered_charges+total_discharges,data=train)
 
 summary(modelo)
 ```
-## 8.2. Seleccion de variables para modelo de regresión
-Para la selección de variables se utiliza el método de la selecció por pasos
+
+## 7.2. Seleccion de variables para modelo de regresión
+
+Para la selección de variables se utiliza el método de la selección automática por pasos
 ```{r}
-library(MASS)
 #metodo de selección por pasos e indica las variables que son significativas
 seleccion=stepAIC(modelo,direction = c("both"))
-
 ```
 
+Vemos la información del elegido como "mejor"
 ```{r}
-#me da informacion unicamente del mejor modelo
 summary(seleccion)
 ```
 
 Nos quedamos con el modelo seleccionado como el mejor para la regresión según el método utilizado anteriormente
 ```{r}
-#indico cual es el mejor mocelo q se selelccionó con el método usado anteriormente
 mejor_modelo=lm(copagos~categoria_state+categoria_enf+cobertura
            +mean_covered_charges+total_discharges,data=train)
 
 summary(mejor_modelo)
 ```
 
-## 8.3 Diagnosis del modelo según el cumplimiento de los siguientes supuestos
+### 7.2.1. Intervalos de confianza
 
-## Linealidad de los residuos
-Como se puede ver en el resultado la media de los residuos es casi cero por lo que tendríamos linealidad
+Determinamos los intervalos de confianza para las observaciones de nuestros datos
+```{r}
+intervalos = predict(mejor_modelo,interval = "confidence",level = 0.95)
+print(intervalos)
+```
+
+###  7.2.2. Tabla anova
+
+La tabla anova nos muestra la significación de la regresión, en nuestro caso se puede ver en los resultados que la variable total_discharge no es significativa para el modelo ya que tiene un p_valor > 0.05
 
 ```{r}
-#comprobamos si la media de los errores es igual a cero o se aproxima
+anova=aov(mejor_modelo)
+summary(anova)
+```
+
+## 7.3. Diagnosis del modelo según el cumplimiento de los siguientes supuestos
+
+### 7.3.1. Linealidad de los residuos
+
+Como se puede ver en el resultado la media de los residuos es casi cero por lo que tendríamos linealidad
+```{r}
 mean(mejor_modelo$residuals)
 ```
 
@@ -645,35 +574,16 @@ También podemos comprobar graficamente la linealidad y como se puede ver en la 
 #forma grafico 1
 plot(mejor_modelo,1)
 #forma grafico 2 que te muestra lo mismo 
-library(ggfortify)
 autoplot(mejor_modelo,1)
-
 ```
 
-##  Intervalos de confianza
-Determinamos los intervalos de confianza para las observaciones de nuestros datos
-```{r}
-#determino los intervalos de confiianza para las observaciones
-intervalos = predict(mejor_modelo,interval = "confidence",level = 0.95)
-print(intervalos)
-```
+En el gráfico de Residuos vs. Ajustes se observa que la media de los residuos es cercana a cero, luego la linealidad del modelo no se viola
 
-##  Tabla anova
-La tabla anova nos muestra la significación de la regresión, en nuestro caso se puede ver en los resultados que la variable total_discharge no es significativa para el modelo ya que tiene un p_valor > 0.05
-
-```{r}
-#nos muestra la significación de la regresión, en nuestro caso total_discharge no es significativa
-#para el modelo
-anova=aov(mejor_modelo)
-summary(anova)
-```
-
-
-## Normalidad de los residuos
+### 7.3.2. Normalidad de los residuos
 
 Primero se comprueba la normalidad de los residuos, pero al usar Shapiro test solo permite usar las 5000 perimeas muestras de los residuos, así que también uso Anderson-Darling para comparar resultados. Como se comprueba mas adelante el p_value < 0.05 por tanto se rechaza la hipotesis nula de que los residuos siguen una distriibución normal.
 
-Shapiro
+* Shapiro:
 ```{r}
 #muestras_residuos=resid(mejor_modelo)
 #obtengo la ditribucion de los residuos estandarizados
@@ -682,10 +592,9 @@ residual_norm=shapiro.test(muestras_residuos1[0:5000])
 residual_norm
 ```
 
-Anderson-Darling
+* Anderson-Darling:
 ```{r}
 #install.packages('nortest')
-library(nortest)
 residual_anderson=ad.test(muestras_residuos1)
 residual_anderson
 ```
@@ -693,7 +602,6 @@ residual_anderson
 Este supuesto de normalidad de los residuos también se puede comprobar graficamente y como se ve en la gráfica nuestros datos se separan en las colas de la línea principal y eso nos  puede indicar que los residuos no siguen una diatribución normal.
 
 ```{r}
-
 #estas tres graficas te muestran lo mismo
 plot(mejor_modelo,2)
 
@@ -705,46 +613,43 @@ yfit<-dnorm(xfit)
 lines(xfit,yfit)
 ```
 
-### Homocedasticidad
-Vamos a comprobar la hocedasticidad( que los residuos tengan una varianza constante).
+Con el Q-Q plot vemos que los residuos no siguen una distribución normal en las colas. Por tanto, no se puede asumir que los estimadores de los coeficientes tengan una distribución normal
+
+### 7.3.3. Homocedasticidad
+
+Vamos a comprobar la homocedasticidad (que los residuos tengan una varianza constante).
 Como podemos ver en los resultados p_value < 0.05 por tanto se rechaza la hipotesis nula y esto indica que la varianza no es constante para este modelo de regresion lineal(esto es un problema). Podemos concluir que este modelo matemático no es adecuado.
 
 ```{r}
 #https://fhernanb.github.io/libro_regresion/homo.html
-#otra prueba para comprobar homocedes
-library(car)
+#otra prueba para comprobar homocedasticidad
 ncvTest(mejor_modelo)
-
 ```
 
 También podemos comprobar gráficamente la hocedasticidad, sería bueno que la línea roja sea lo más recta/horizontal posible.
-
 ```{r}
+#rechazamos la hipotesis nula que la varianza de los errores ees constante
 plot(mejor_modelo,3)
 
 autoplot(mejor_modelo,3)
-
 ```
 
+Hay claro patrón de embudo, lo que indica que se viola el principio de homocedasticidad del modelo. Es decir, la varianza de los residuos no es constante y el ajuste del modelo no es adecuado. También se señalan algunos puntos candidatos a ser outliers
 
-### Independencia de los residuos
+### 7.3.4. Independencia de los residuos
 
 Como se puede ver en los resultados el p_value > 0.05 por lo que aceptamos la Ho de que hay independencia.
-
 ```{r}
-
-durbinWatsonTest(mejor_modelo)
-
+#medimos independencia entre los residuos
+#entonces no rechazamos la  hipotesis nula y podemos asumir que los residuos no presentan autcorrelacion
+dwtest(mejor_modelo)
 ```
 
-Se puede comprobar la independencia de los residuos gráficamente y como se observa no se ven patrónes extraños y esto nos puede indicar que hay independencia en los residuos.
-
+Se puede comprobar la independencia de los residuos gráficamente y como se observa no se ven patrónes extraños y esto nos puede indicar que hay independencia en los residuos y que estos no presentan autocorrelación.
 ```{r}
-
 plot(mejor_modelo$resid)
 
 acf(mejor_modelo$residuals)
-
 ```
 
 ### Nota:
@@ -753,10 +658,9 @@ Existe una forma de ver un resumen de si se cumplen o no los supuestos, pero es 
 ```{r}
 library(gvlma)
 gvlma(mejor_modelo)
-
 ```
-Se puede graficar todo a la vez 
 
+Se puede graficar todo a la vez 
 ```{r}
 plot(mejor_modelo)
 ```
