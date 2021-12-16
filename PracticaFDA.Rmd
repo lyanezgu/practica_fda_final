@@ -21,7 +21,7 @@ El grupo eligió trabajar en lenguage R (RStudio version 1.4.1717) y utilizar co
 
 # 2. Conjunto de datos elegido
 
-El conjunto de datos elegido por el grupo se llama "Hospital Charges in America" y incluye información que compara las tarifas de los servicios de hospitalizacón en diferentes estados de los EEUU para los 100 principales grupos de diagnósticos. 
+El conjunto de datos elegido por el grupo se llama "Hospital Charges in America" y incluye información que compara las tarifas de los servicios de hospitalizacón en diferentes estados de los EEUU para los 100 principales grupos de diagnósticos de enfermedades. 
 
 **Link del data set:** <https://www.kaggle.com/dhirajnirne/hospital-charges-in-america>.
 
@@ -50,18 +50,18 @@ library(PerformanceAnalytics)
 
 ## 2.2. Cargar los datos
 
-El conjunto de datos "Hospital Charges in America" contiene 12 columnas y 163.065 filas, y lo obtenemos en formato .csv. 
+El conjunto de datos "Hospital Charges in America" contiene 12 columnas y 163.065 fila y lo obtenemos en formato .csv. 
 Inicialmente se han guardado los datos en un data frame llamado "hospital_charges" y se ha realizado un estudio inicial sobre su contenido utilizando la función head y summary.
 
 ```{r cargas datos, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 hospital_charges <- read_csv("notebooks/hospital-charges.csv")
-hospital_charges
 head(hospital_charges)
 summary(hospital_charges)
 ```
-##  2.3. Cambiar los nombres de las columnas
 
-Se ha decidido realizar un cambio en el nombre de las variables que aparecen en las columnas de los datos para así seguir un mismo patrón y a al vez evitar tener espacios que nos pueden llegar a dar problemas a futuro.
+##  2.3. Limpieza de datos - Cambio de nombres de las columnas
+
+Se ha decidido realizar un cambio en el nombre de las variables que aparecen en las columnas de los datos para así seguir un mismo patrón y a la vez evitar tener espacios que nos pueden llegar a dar problemas a futuro.
 
 
 ```{r cambiar columnas 1, include=TRUE, message=FALSE, warning = FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
@@ -70,9 +70,9 @@ names(hospital_charges) <- c('drg_def', 'prov_id', 'prov_name', 'prov_address', 
 head(hospital_charges)
 ```
 
-## 2.4. Cambio de tipo de variable
+## 2.4. Limpieza de datos - Cambio de tipo de variable
 
-Se ha decidido eliminar el símbolo de moneda de dólar de las últimas tres columnas, transformando las columnas a tipo numérico.
+Se ha decidido eliminar el símbolo de moneda de dólar de las últimas tres columnas (mean_covered_charges, mean_total_payments y mean_medicare_payments), transformando las columnas a tipo numérico. Las columnas prov_zip y prov_id han sido transformadas en factores.
 
 ```{r cambiar dolares, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 hospital_charges$mean_covered_charges = as.numeric(gsub("\\$","",hospital_charges$mean_covered_charges))
@@ -90,9 +90,9 @@ head(hospital_charges)
 str(hospital_charges)
 ```
 
-# 3. Detección, tratamiento e imputación de datos faltantes
+# 3. Añadiendo datos faltantes al data set
 
-A través de la función summary empezamos comprobando que no hay datos faltantes en el data set. Por ello el grupo ha tenido que añadirlos manualmente para aproximarnos a un caso más real donde lo normal es encontrarlos y tener que lidiar con ellos. Los datos faltantes han sido imputados exclusivamente en las columnas que no van a servir de análisis principal para este estudio, para así intentar que la predicción que hagamos sea lo más precisa posible.
+A través de la función summary empezamos comprobando que no hay datos faltantes en el data set. Por ello el grupo ha tenido que añadirlos manualmente para aproximarnos a un caso más real donde lo normal es encontrarlos y tener que lidiar con ellos. Los datos faltantes han sido imputados exclusivamente en las columnas que no creemos que no van a servir de análisis principal para este estudio (total_discharges y mean_covered_charges), para así intentar que la predicción que hagamos sea lo más precisa posible.
 
 Utilizamos la librería missForest y generamos una semilla para que el resultado sea siempre el mismo.
 
@@ -104,19 +104,20 @@ hospital_charges <-bind_cols(hospital_charges[c(1,2,3,4,5,6,7,8,11,12)],
 hospital_charges
 ```
 
-Haciendo uso de la librería VIM, analizamos un poco la estructura que tienen nuestros datos faltantes dentro de nuestra data set para ver y entender como se distribuyen.
+Haciendo uso de la librería VIM, analizamos un poco la estructura que tienen nuestros datos faltantes dentro de nuestra data set para ver y entender como se distribuyen. 
+
+Se puede comprobar que la proporción de datos faltantes en estas variables es de aproximadamente 10% y hay 1.622 filas en que las dos variables son faltantes.
 
 ```{r dfdos, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 summary(aggr(hospital_charges,numbers=T,sortVar=T))
 
-#referencia https://rpubs.com/sediaz/na_aggr
 ```
 
 # 4. Partición del conjunto de datos: data set training y data set test
 
-Una vez vistos por encima la estructura general de los datos, y habiendo añadido los datos faltantes que nos hacian falta, pasamos a dividir el conjunto de datos en dos, para diferenciar los que usaremos de entrenamiento de los que usaremos de test (viendo la cantidad de datos de la que disponemos, la distribución elegida ha sido: 20% test y 80% training). Establecemos una semilla que nos guarde de forma permanente la división que hacemos, para que la división de los datos sea siempre la misma.
+Una vez vistos por encima la estructura general de los datos y habiendo añadido los datos faltantes que nos hacian falta, pasamos a dividir el conjunto de datos en dos para diferenciar los que usaremos de entrenamiento de los que usaremos de test (viendo la cantidad de datos de la que disponemos, la distribución elegida ha sido: 20% test y 80% training). Establecemos una semilla que nos guarde de forma permanente la división que hacemos para que la división de los datos sea siempre la misma.
 
-Guardamos además la partición de datos de test para ser utilizada a futuro para la validación del modelo final, y pasamos a trabajar de aquí en adelante con la partición de training.
+Guardamos además la partición de datos de test para ser utilizada a futuro para la validación del modelo final y pasamos a trabajar de aquí en adelante con la partición de training.
 
 ```{r p, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 set.seed(101)
@@ -129,14 +130,17 @@ test
 ```
 
 
-# 5. Imputación de datos faltantes
+# 5. Detección, tratamiento e imputación de datos faltantes
+
+Para la imputación de datos faltantes en las columnas mean_covered_charges y total_discharges, reemplazados todos sus NAs según los valores medios de las mismas. Con la función summary si comproba que ya no hay más datos faltantes en el data set train.
 
 ```{r imputacion, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train$mean_covered_charges[is.na(train$mean_covered_charges)]<-mean(train$mean_covered_charges,na.rm = TRUE)
 
 train$total_discharges[is.na(train$total_discharges)]<-mean(train$total_discharges,na.rm = TRUE)
+
+summary(train)
 ```
-Reemplazamos los valores faltantes de las columnas según los valores medios de las mismas.
 
 
 # 6. EDA - Análisis exploratorio de datos
@@ -180,17 +184,17 @@ Esto es lo que realmente se le paga al hospital e incluye lo que paga Medicare m
 
 ## 6.2. Definición de objetivos
 
-El objetivo final del proyecto es llegar a un modelo que permita recomendar cual es el hospital o grupo de hospitales óptimo que debe elegir un paciente enfermo en EEUU, en base a la posible enfermedad que le van a diagnosticar, su localización geográfica y los costes que su caso clínico puede llegar a tener en base al sistema sanitario estadounidense.
+El objetivo final del proyecto es llegar a un modelo que permita recomendar cual es el hospital o grupo de hospitales óptimo que debe elegir un paciente enfermo en EEUU en base a la posible enfermedad que le van a diagnosticar, su localización geográfica y los costes que su caso clínico puede llegar a tener en base al sistema sanitario estadounidense.
 
 
-Para esta primera entrega, el objetivo es realizar el tratamiento de datos adecuado y seleccionar las mejores variables que servirán para llegar al modelo de Machine Learning deseado. Se realizará de la misma manera un ajuste, interpretación y diagnosis del modelo de regresión lineal múltiple, en base a las variables que mejor expliquen los datos y evaluando si se trata de un modelo correcto para nuestros datos o no.
+Para esta primera entrega, el objetivo es realizar el tratamiento de datos adecuado y seleccionar las mejores variables que servirán para llegar al modelo de Machine Learning deseado. Se realizará de la misma manera un ajuste, interpretación y diagnosis del modelo de regresión lineal múltiple en base a las variables que mejor expliquen los datos y evaluando si se trata de un modelo correcto para nuestros datos o no.
 
 
 ## 6.3. Transformaciones de variables cuantitativas y procesado de variables cualitativas
 
 ### 6.3.1. División de la columna drg_def
 
-Realizamos una división de la columna "drg_ref". Separamos la columna en dos diferenciando entre código de la enfermedad y descripción de la enfermedad. Nos servirá a futuro para simplificar el análisis y visualización de los datos de interés.
+Realizamos una división de la columna "drg_ref". Separamos la columna en dos diferenciando entre código de la enfermedad y descripción de la enfermedad. Nos servirá a futuro para simplificar el análisis y visualización de los datos de interés en graficos y tablas.
 
 ```{r, message=FALSE, warning=FALSE, include=TRUE}
 train <-train %>% 
@@ -199,75 +203,94 @@ train <-train %>%
 
 train$codigo_enf <- as.factor(train$codigo_enf)
 
-train
+head(train)
 
-str(train)
+
 ```
 
 
 ### 6.3.2. Creando columna nueva relativa a los copagos que deben realizar los pacientes: mean_total_payments - mean_medicare_payments
 
-Nueva variable representativa del valor de los copagos que debe realizar el paciente o su seguro privado (en caso de contar con uno), para completar, junto a lo que cubre el Estado con el Medicare, el coste total de la intervención hospitalaria.
+El grupo ha decidido crear una nueva variable representativa del valor de los copagos que debe realizar el paciente o su seguro privado (en caso de contar con uno), para completar (junto a lo que cubre el Estado con el Medicare) el coste total de la intervención hospitalaria.
+
+
 ```{r nueva variable, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train <- train %>% mutate(copagos = mean_total_payments - mean_medicare_payments)
-train
+head(train)
 ```
 
 ### 6.3.3. Creando columna nueva relativa a la tasa de cobertura de la Seguridad Social estadounidense: mean_medicare_payments/mean_total_payments
 
-Nueva variable representativa de la tasa de cobertura que ofrece el sistema de salud de la Seguridad Social americana según el hospital, el grupo de diagnóstico y la gravedad del paciente. Nos ayudamos para ello de la librería formattable, obteniendo resultados en forma de porcentaje de cobertura sobre el total a pagar al hospital.
-```{r nueva variabledos, message=FALSE, warning=FALSE, include=TRUE}
+Además de la variable copago, hemos creado una nueva variable representativa de la tasa de cobertura que ofrece el sistema de salud de la Seguridad Social americana según el hospital, el grupo de diagnóstico y la gravedad del paciente. Nos ayudamos para ello de la librería formattable, obteniendo resultados en forma de porcentaje de cobertura sobre el total a pagar al hospital.
+
+
+```{r nueva variabledos,  include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train <- train %>% mutate(cobertura = percent(mean_medicare_payments/mean_total_payments))
-train
+head(train)
 ```
 
 ### 6.3.4. Creando columna nueva para uso en variables categóricas: Media por Estado según mean_total_payments = mean_total_state
 
-```{r}
+Como tenemos dos variables categóricas (estado y grupo de enfermedad) que queremos comprobar su efecto en nuestro modelo de regresión lineal múltiple, tenemos que crear variables dummies que serán variables creadas para cada uno de los niveles del predictor categórico y que pueden tomar valores de 0 o 1.
+
+Inicialmente hemos creado una nueva columna mean_total_payments agrupada por state (es decir, la media de total_payments por estado) para que así, estados iguales tengan el mismo valor quantitativo en esta variable. 
+
+```{r mean total state, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train <- train %>% group_by(prov_state) %>% 
   mutate(mean_total_state=mean(mean_total_payments))
-train
+
+head(train)
 ```
 
 ### 6.3.5. Creando columna nueva para uso en variables categóricas: Media por enfermedad según mean_total_payments = mean_total_enf
 
-```{r}
+
+Lo mismo hicimos para la variable enfermedad donde creamos una nueva variable que es la media total de los costes por enfermedad.
+
+```{r mean total enf,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train <- train %>% group_by(codigo_enf) %>% 
   mutate(mean_total_enf=mean(mean_total_payments))
-train
-summary(train)
+
+head(train)
+
 ```
 
 ### 6.3.6. Variable categórica dummy: categoria_state -> niveles alto, medio y bajo
 
-Creamos nueva variable agrupando los Estados por niveles según la variable "mean_total_state" (= Media por Estado según mean_total_payments)
-```{r}
-#nueva variable agrupando estados por media de copagos
+Una vez que hemos creado nuestras nuevas colunmas cuantitativas y para reducir los niveles del predictor categóricos a 3, creamos una segunda nueva variable agrupando los costes por Estados (51 estados) por 3 niveles High, Mid y Low según la variable "mean_total_state". Para estabelecer los limites de la partición nos hemos basado en los cuantiles de esta variable "mean_total_state".
+
+
+```{r grupo estado, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
 train<-train %>%
     mutate(categoria_state = case_when(mean_total_state >= 12000  ~ 'High',
                                   mean_total_state >= 8500 ~ 'Mid',
                                   TRUE ~ 'Low'))
-train
+head(train)
+ 
+ggplot(train)+geom_bar(aes(x=categoria_state, fill = categoria_state)) + theme(legend.position ="none")+ggtitle("Frecuencia de cada categoria creada para los estados - Low, Mid y High")
 
-ggplot(train)+geom_bar(aes(x=categoria_state))
+
 ```
 
-```{r}
+```{r dummys, include=FALSE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 res <- model.matrix(~categoria_state, data = train)
 head(res[, -1])
 ```
 
 ### 6.3.7. Variable categórica dummy: categoria_enf -> niveles alto, medio y bajo
 
-Creamos nueva variable agrupando las enfermedades por niveles según la variable "mean_total_enf" (= Media por enfermedad según mean_total_payments)
-```{r}
+La misma lógica del apartado anterior ha sido utilizada para agrupar los grupos de enfermedad (100 grupos de enfermedad) en apenas Low, Mid y High según la variable "mean_total_enf".
+
+```{r grupo enf, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train<-train %>%
     mutate(categoria_enf = case_when(mean_total_enf >= 13000 ~ 'High',
                                   mean_total_enf >= 5500 ~ 'Mid',
                                   TRUE ~ 'Low'))
-train
+head(train)
 
-ggplot(train)+geom_bar(aes(x=categoria_enf))
+ggplot(train)+geom_bar(aes(x=categoria_enf, fill = categoria_enf)) + theme(legend.position ="none")+ggtitle("Frecuencia de cada categoria creada para los grupos de enfermedades - Low, Mid y High")
+
 ```
 
 ```{r}
@@ -277,25 +300,22 @@ head(res2[, -1])
 
 ## 6.4. Análisis exhaustivo de los datos críticos para el estudio
 
-### 6.4.1. Gráfico EEUU: valor de los copagos por Estados
+### 6.4.1. Gráfico EEUU: valor de los Copagos por Estados
+
+Con la ayuda de la libreria "usmap" hemos creado un mapa para visualmente identificar como se distribuyen los valores de copagos en los diferentes estados de EEUU.
 
 ```{r test mapa, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-#Haciendo la media de lo que cobra el hospital por estado
+
 
 region_geog <- train %>% group_by(prov_state) %>% summarise (mean_total_price = mean(copagos))
-region_geog
+names(statepop) <- c('fips','prov_state','full','pop_2015') 
 
-statepop #en libreria usmap hay un dataframe que es la populacion para cada estado 
-#(siglas -abbr ) y nos interesa agrupar a este data frame la columna mean_total_payments
-
-names(statepop) <- c('fips','prov_state','full','pop_2015') #cambiamos el nombre de la 
-#columna abbr para prov_state para tenerla igual en statepop y region_geog
-
-statepop2 <- statepop %>% left_join(region_geog, by='prov_state') #juntamos region_geog y statepop
+statepop2 <- statepop %>% left_join(region_geog, by='prov_state') 
 
 plot_usmap(data = statepop2, values = "mean_total_price", color = "white") + 
   scale_fill_continuous(low='light blue', high ='dark blue',name = "Media Copagos", label = scales::dollar) + 
   theme(legend.position = "right")
+
 ```
 
 Los estados americanos más caros para el paciente son Wyoming (copagos medio de 1983 dólares), Utah (copagos medio de 1927 dólares) y Hawái (copagos medio de 1851 dólares) 
@@ -303,31 +323,34 @@ Los estados americanos más caros para el paciente son Wyoming (copagos medio de
 Wyoming es el estado menos poblado de EEUU (dos tercios del territorio cubiertos por sierras y montañas), los componentes de su economia difieren significativamente de los otros estados (minería y turismo) y el gobierno es dueño de 50% de sus tierras.
 
 
-### 6.4.2. Gráfico EEUU: valor de los Costes médicos por Estados
+### 6.4.2. Gráfico EEUU: valor de los Costes Médicos por Estados
 
-```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-#Haciendo la media de lo que cobra el hospital por estado
+Con la misma libreria "usmap" cream0os un nuevo mapa para visualmente identificar como se distribuyen los valores de total_payments en los diferentes estados de EEUU.
+
+```{r test mapa 2, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
 
 region_geog_2 <- train %>% group_by(prov_state) %>% summarise (mean_total_cost = mean(mean_total_payments))
-region_geog_2
 
-statepop #en libreria usmap hay un dataframe que es la populacion para cada estado 
-#(siglas -abbr ) y nos interesa agrupar a este data frame la columna mean_total_payments
+names(statepop) <- c('fips','prov_state','full','pop_2015') 
 
-names(statepop) <- c('fips','prov_state','full','pop_2015') #cambiamos el nombre de la 
-#columna abbr para prov_state para tenerla igual en statepop y region_geog
 
-statepop3 <- statepop %>% left_join(region_geog_2, by='prov_state') #juntamos region_geog y statepop
+statepop3 <- statepop %>% left_join(region_geog_2, by='prov_state') 
 
 plot_usmap(data = statepop3, values = "mean_total_cost", color = "white") + 
-  scale_fill_continuous(low='light green', high ='dark green',name = "Media Costes totales hospital", label = scales::dollar) + 
+  scale_fill_continuous(low='light green', high ='dark green',name = "Media Costes Totales", label = scales::dollar) + 
   theme(legend.position = "right")
 ```
+Los estados americanos con los costes médios totales más elevados son Alaska (media coste total de 14.928 dólares), DC - Washington (media coste total de 13.382 dólaress) y Hawái (media coste total de 12.996 dólares).
 
+Comparando los dos gráficas se puede concluir que estados como Hawái y Alaska tienen tanto un coste médio total de tratamiento alto, cuanto de copagos a serem pagos por el paciente. Wyoming, el estado más caro para el paciente, es también el quinto estado con tratamiento hospitalar total medio más caro.
 
 ### 6.4.3. Top 10 enfermedades más comunes detectadas
 
-```{r, message=FALSE, warning=FALSE, include=TRUE}
+Creamos un grafico de barras para visualizar las 10 enfermedades más comunes de nuestro data set.
+
+
+```{r top 10 comunes, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 d2 <- train %>%
 group_by(codigo_enf) %>% summarise(n = n()) %>% arrange(desc(n)) %>% mutate(codigo_enf=factor(codigo_enf, codigo_enf))
 
@@ -336,7 +359,7 @@ top_10_comunes <- head(d2,10)
 train %>%
   filter(codigo_enf %in% top_10_comunes$codigo_enf) %>%
   mutate(codigo_enf = factor(codigo_enf, levels = levels(top_10_comunes$codigo_enf))) %>%
-  ggplot(aes(x = codigo_enf, fill=desc_enf)) + geom_bar() + coord_flip() + 
+  ggplot(aes(x = codigo_enf, fill=desc_enf)) + geom_bar() + 
 theme_bw(base_size=9) + xlab("Código enfermedad") + 
     ylab("Frecuencia") +
     ggtitle("10 enfermedadas más comunes")
@@ -348,12 +371,14 @@ ias previas" (nivel medio de severidad) con 2.424 casos. En segundo y tercer lug
 
 ### 6.4.4. Top 10 enfermedades más caras 
 
-```{r, message=FALSE, warning=FALSE, include=TRUE}
+Creamos un grafico de barras para visualizar las 10 enfermedades más caras de nuestro data set.
+
+```{r 10 mas caras, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 d3 <- train %>%
   group_by(codigo_enf) %>% summarise(mean=mean(mean_total_payments)) %>% arrange(desc(mean))
 
 top_10_caras <- head(d3,10)
-top_10_caras
+
 
 ggplot(data=top_10_caras, mapping = aes(x = reorder(codigo_enf,-mean),mean)) + geom_bar(stat = "identity", aes(fill=mean)) + theme_bw(base_size=9) + ylab("Media Total Payments") + xlab("Codigo enfermedad") + ggtitle("10 enfermedadas más caras") + scale_y_continuous(label = scales::dollar) + scale_fill_gradient(low="light blue", high="dodgerblue4")
 ```
@@ -364,11 +389,14 @@ El segundo y tercer grupo DRG más caros son las "853 - Infecciones y enfermedad
 
 ### 6.4.5. Gráfico de calor - ratio de cobertura por Estado para las 10 enfermedades más caras
 
-```{r, message=FALSE, warning=FALSE, include=TRUE}
+Creamos un grafico de calor para visualizar el ratio de cobertura pro Estado para las 10 enfermedades más caras de nuestro data set.
+
+```{r calor ratio cobertura, minclude=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 test <- top_10_caras %>% inner_join(train)
-test
-ggplot(test, aes(codigo_enf,prov_state, fill=cobertura))+geom_tile() + theme_bw(base_size=7) + scale_fill_gradient(low = "white", high = "purple")
+
+ggplot(test, aes(codigo_enf,prov_state, fill=cobertura))+geom_tile() + theme_bw(base_size=7) + scale_fill_gradient(low = "white", high = "dodgerblue4")
 ```
+
 De manera general se puede decir que la tasa de cobertura de las top 10 enfermedades más caras es, en todos los estados de Estados Unidos, superior a 80% (colores morado escuro predominante en casi todo el gráfico).
 
 La tasa de cobertura para la enfermedad Septicemia es en media, para todos los estados, de 95%, siendo entonces la enfermedad más cara para el sistema público, pero con gran cobertura y pocos copagos al paciente. Lo mismo se puede observar para las Enfermedades Parasitárias (94%) y Enfermedades Respiratória (93%).
@@ -378,79 +406,90 @@ En el de Wyoming, el estado donde se hay que pagar las mayores cifras de copagos
 
 ### 6.4.6. Correlación entre variables
 
-```{r, message=FALSE, warning=FALSE, include=TRUE}
+Queremos analisar si se puede afirmar estadisticamente que hay correlación positiva entre las variables mean_total_payments y mean_medicare_payments.
+
+```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 cor(x=train$mean_total_payments, y=train$mean_medicare_payments)
 ```
 
-```{r}
-with(train, plot(x=mean_total_payments, y=mean_medicare_payments, pch=20, col='blue',
-                 xlab='mean total payments', las=1,
-                 ylab='mean_medicare_payments'))
+```{r, include=FALSE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+#with(train, plot(x=mean_total_payments, y=mean_medicare_payments, pch=20, col='blue',
+                 #xlab='mean total payments', las=1,
+                 #ylab='mean_medicare_payments'))
 ```
 
-```{r, message=FALSE, warning=FALSE, include=TRUE}
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train %>% ggplot(aes(mean_total_payments, mean_medicare_payments)) + 
   geom_point(alpha=0.2, colour="green") + 
   geom_smooth(formula= 'y ~ x',method = 'lm') + 
-  labs(title='Relacion entre variables total payments y medicare payments', 
+  labs(title='Relación entre variables total payments y medicare payments', 
        x='mean total payments',
        y='mean medicare payments`')
 ```
-
+Através de la grafica y de la función cor (valor 0.99 aproximadamente), afirmamos que estás dos variables se correlacionan positivamente. Eso era esperado una vez que el valor mean_medicare_payments es parte de lo que se entende por mean_total_payments.
 
 ### 6.4.7. Análisis de la distribución de las variables
 
-* Queremos ver si la variable **"mean_total_payments"** sigue una distribución normal
-```{r, message=FALSE, warning=FALSE, include=TRUE}
+Queremos verificar si la variable "mean_total_payments" sigue una distribución normal.
+```{r total sin log, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train%>%
   filter(mean_total_payments<100000 ) %>%
-  ggplot(aes(x=mean_total_payments))+ geom_histogram()
+  ggplot(aes(x=mean_total_payments))+ geom_histogram(color="red", fill = "red") + ggtitle("Distribuición normal - Mean Total Payments")
 ```
 
-Analizamos la normalidad de la misma variable pero utilizando logaritmos
-```{r, message=FALSE, warning=FALSE, include=TRUE}
+Podemos ver que los valores están muy sesgados. Sería conveniente transformar esta variable para que la distribución de sus valores fuese más homogénea. Este resultado se consigue aplicando una transformación logarítmica.
+
+
+```{r total con log , include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train%>%
   filter(mean_total_payments<100000 ) %>%
-  ggplot(aes(x=log10(mean_total_payments)))+ geom_histogram()
+  ggplot(aes(x=log10(mean_total_payments)))+ geom_histogram(color="red", fill = "red") + ggtitle("Distribuición normal - Log Mean Total Payments")
 ```
+Ahora queremos ver si la variable "mean_medicare_payments" sigue una distribución normal.
 
-* Ahora queremos ver si la variable **"mean_medicare_payments"** sigue una distribución normal
-```{r}
+```{r medicare sin log,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train%>%
   filter(mean_medicare_payments<100000 ) %>%
-  ggplot(aes(x=mean_medicare_payments))+ geom_histogram()
+  ggplot(aes(x=mean_medicare_payments))+ geom_histogram(color="blue", fill = "blue") + ggtitle("Distribuición normal - Mean Medicare Payments")
 ```
 
-Analizamos la normalidad de la misma variable pero utilizando logaritmos
-```{r,message=FALSE, warning=FALSE, include=TRUE}
+Analizamos la normalidad de la misma variable, pero ahora otra vez utilizando logaritmos.
+
+```{r medicare con log,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train%>%
   filter(mean_medicare_payments<100000 ) %>%
-  ggplot(aes(x=log10(mean_medicare_payments)))+ geom_histogram()
+  ggplot(aes(x=log10(mean_medicare_payments)))+ geom_histogram(color="blue", fill = "blue")+ggtitle("Distribuición normal - Log Mean Medicare Payments")
 ```
 
-* Ahora queremos ver si la variable **"copagos"** sigue una distribución normal
-```{r,message=FALSE, warning=FALSE, include=TRUE}
+Analisamos por fin si la variable "copagos" sigue una distribución normal.
+
+```{r copago sin log,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train%>%
   filter(mean_medicare_payments<100000 ) %>%
-  ggplot(aes(x=copagos))+ geom_histogram()
+  ggplot(aes(x=copagos))+ geom_histogram(color = "orange", fill = "orange") + ggtitle("Distribuición normal - Copagos") 
 ```
 
-Analizamos la normalidad de la misma variable pero utilizando logaritmos
-```{r,message=FALSE, warning=FALSE, include=TRUE}
+Analizamos la normalidad de la misma variable, utilizando otra vez logaritmos.
+
+```{r copagos con log,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train%>%
   filter(mean_medicare_payments<100000 ) %>%
-  ggplot(aes(x=log10(copagos)))+ geom_histogram()
+  ggplot(aes(x=log10(copagos)))+ geom_histogram(color = "orange", fill = "orange") + ggtitle("Distribuición normal - Log Copagos")
 ```
+Graficamente podemos decir que las tres curvas se asemejan a una distribuición normal ligeramente concentrada a la izquierda.
+
 
 
 ### 6.4.8. Boxplot - análisis de la variables de relevancia y de los atípicos observados
 
-```{r, message=FALSE, warning=FALSE, include=TRUE}
+Creamos un sub data set solo con las variables numéricas para analisar si tienes valores atípicos.
+
+```{r variables numericas,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train_num <- Filter(is.numeric, train)
 train_num
 ```
-
-```{r, message=FALSE, warning=FALSE, include=TRUE}
+ 
+```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 p1 <- ggplot (train_num, aes(y= train_num$mean_total_payments)) + geom_boxplot(fill = "red") + scale_y_continuous(name = "dólares", labels = scales::dollar) + xlab("mean_total_payments") + ggtitle("Boxplot: mean_total_payments")
 
 p11 <- ggplot (train_num, aes(y= log10(train_num$mean_total_payments))) + geom_boxplot(fill = "red") + scale_y_continuous(name = " Log dólares", labels = scales::dollar) + xlab("mean_total_payments") + ggtitle("Boxplot: Log mean_total_payments")
@@ -459,7 +498,7 @@ plot_grid(p1, p11)
 mean(train_num$mean_total_payments)
 ```
 
-```{r, message=FALSE, warning=FALSE, include=TRUE}
+```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 p2 <- ggplot (train_num, aes(y=train_num$mean_medicare_payments)) + geom_boxplot(fill = "blue") + scale_y_continuous(name = "dólares", labels = scales::dollar) + xlab("mean_medicare_payments") + ggtitle("Boxplot: mean_medicare_payments")
 
 p22 <- ggplot (train_num, aes(y= log10(train_num$mean_medicare_payments))) + geom_boxplot(fill = "blue") + scale_y_continuous(name = "Log dólares", labels = scales::dollar) + xlab("mean_medicare_payments") + ggtitle("Boxplot: Log mean_medicare_payments")
@@ -468,7 +507,7 @@ plot_grid(p2, p22)
 mean(train_num$mean_medicare_payments)
 ```
 
-```{r, message=FALSE, warning=FALSE, include=TRUE}
+```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 p3 <- ggplot (train_num, aes(y=train_num$copagos)) + geom_boxplot(fill = "yellow") + scale_y_continuous(name = "dólares", labels = scales::dollar) + xlab("copagos") + ggtitle("Boxplot: copagos")
 
 p33 <- ggplot (train_num, aes(y=log10(train_num$copagos))) + geom_boxplot(fill = "yellow") + scale_y_continuous(name = "Log dólares", labels = scales::dollar) + xlab("copagos") + ggtitle("Boxplot: Log copagos")
@@ -477,24 +516,26 @@ plot_grid(p3, p33)
 mean(train_num$copagos)
 ```
 
-```{r, message=FALSE, warning=FALSE, include=TRUE}
+```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 p4 <- ggplot (train_num, aes(y=train_num$cobertura)) + geom_boxplot(fill = "green") + scale_y_continuous(name = "% cobertura") + xlab("cobertura") + ggtitle("Boxplot: cobertura")
 
 p4
 mean(train_num$cobertura)
 ```
 
-### 6.4.9. Análisis de correlación entre variables
+### 6.4.9. Análisis de correlación entre variables númericas
 
-```{r}
+```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 res <- cor(train_num)
 round(res, 2)
 
 corrplot(res, type = "upper", order = "hclust", 
          tl.col = "black", tl.srt = 45)
 ```
+Se observa una correlación positiva en casi todos los casos, expecto para copagas y cobertura.
 
-```{r}
+
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 ggplot(data = train, mapping=aes(x = categoria_state, y = log10(copagos), color=categoria_state)) +
 geom_boxplot() +
 geom_jitter(width = 0.1) +
@@ -502,7 +543,7 @@ theme_bw() + theme(legend.position = "none")
 ```
 
 
-```{r}
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 ggplot(data = train, mapping=aes(x = categoria_enf, y = log10(copagos), color=categoria_enf)) +
 geom_boxplot() +
 geom_jitter(width = 0.1) +
@@ -513,9 +554,9 @@ theme_bw() + theme(legend.position = "none")
 
 ## 7.1. Ajuste del modelo de regresión
 
-Ajustamos un modelo de regresión lineal mútiple con el que vamos a predecir el valor de la variable copagos a partir de las siguientes variables independientes(categoria_state,categoria_enf,cobertura+mean_covered_charges,y total_discharges).
+Ajustamos un modelo de regresión lineal mútiple con el que vamos a predecir el valor de la variable copagos a partir de las siguientes variables independientes(categoria_state,categoria_enf,cobertura,mean_covered_charges y total_discharges).
 
-```{r}
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 modelo= lm(copagos~categoria_state+categoria_enf+cobertura
            +mean_covered_charges+total_discharges,data=train)
 
@@ -524,19 +565,21 @@ summary(modelo)
 
 ## 7.2. Seleccion de variables para modelo de regresión
 
-Para la selección de variables se utiliza el método de la selección automática por pasos
-```{r}
+Para la selección de variables se utiliza el método de la selección automática por pasos.
+
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 #metodo de selección por pasos e indica las variables que son significativas
 seleccion=stepAIC(modelo,direction = c("both"))
 ```
 
 Vemos la información del elegido como "mejor"
-```{r}
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 summary(seleccion)
 ```
 
-Nos quedamos con el modelo seleccionado como el mejor para la regresión según el método utilizado anteriormente
-```{r}
+Nos quedamos con el modelo seleccionado como el mejor para la regresión según el método utilizado anteriormente.
+
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 mejor_modelo=lm(copagos~categoria_state+categoria_enf+cobertura
            +mean_covered_charges+total_discharges,data=train)
 
@@ -545,17 +588,18 @@ summary(mejor_modelo)
 
 ### 7.2.1. Intervalos de confianza
 
-Determinamos los intervalos de confianza para las observaciones de nuestros datos
-```{r}
+Determinamos los intervalos de confianza para las observaciones de nuestros datos.
+
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 intervalos = predict(mejor_modelo,interval = "confidence",level = 0.95)
-print(intervalos)
+head(intervalos)
 ```
 
 ###  7.2.2. Tabla anova
 
-La tabla anova nos muestra la significación de la regresión, en nuestro caso se puede ver en los resultados que la variable total_discharge no es significativa para el modelo ya que tiene un p_valor > 0.05
+La tabla anova nos muestra la significación de la regresión, en nuestro caso se puede ver en los resultados que la variable total_discharge no es significativa para el modelo ya que tiene un p_valor > 0.05.
 
-```{r}
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 anova=aov(mejor_modelo)
 summary(anova)
 ```
@@ -564,27 +608,28 @@ summary(anova)
 
 ### 7.3.1. Linealidad de los residuos
 
-Como se puede ver en el resultado la media de los residuos es casi cero por lo que tendríamos linealidad
-```{r}
+Como se puede ver en el resultado la media de los residuos es casi cero por lo que tendríamos linealidad.
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 mean(mejor_modelo$residuals)
 ```
 
-También podemos comprobar graficamente la linealidad y como se puede ver en la gráfica la línea roja está muy cerca de la línea ideal unicamente tiene una desviación en la cola derecha  y pueden ser por los outliers.
-```{r}
+También podemos comprobar graficamente la linealidad y como se puede ver en la gráfica la línea roja está muy cerca de la línea ideal unicamente tiene una desviación en la cola derecha  y pueden ser por los outliers..
+
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 #forma grafico 1
 plot(mejor_modelo,1)
 #forma grafico 2 que te muestra lo mismo 
 autoplot(mejor_modelo,1)
 ```
 
-En el gráfico de Residuos vs. Ajustes se observa que la media de los residuos es cercana a cero, luego la linealidad del modelo no se viola
+En el gráfico de Residuos vs. Ajustes se observa que la media de los residuos es cercana a cero, luego la linealidad del modelo no se viola.
 
 ### 7.3.2. Normalidad de los residuos
 
-Primero se comprueba la normalidad de los residuos, pero al usar Shapiro test solo permite usar las 5000 perimeas muestras de los residuos, así que también uso Anderson-Darling para comparar resultados. Como se comprueba mas adelante el p_value < 0.05 por tanto se rechaza la hipotesis nula de que los residuos siguen una distriibución normal.
+Primero se comprueba la normalidad de los residuos, pero al usar Shapiro test solo permite usar las 5000 primeras muestras de los residuos, así que también usamos Anderson-Darling para comparar resultados. Como se comprueba más adelante el p_value < 0.05, se rechaza la hipotesis nula de que los residuos siguen una distriibución normal.
 
 * Shapiro:
-```{r}
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 #muestras_residuos=resid(mejor_modelo)
 #obtengo la ditribucion de los residuos estandarizados
 muestras_residuos1=studres(mejor_modelo)
@@ -593,7 +638,7 @@ residual_norm
 ```
 
 * Anderson-Darling:
-```{r}
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 #install.packages('nortest')
 residual_anderson=ad.test(muestras_residuos1)
 residual_anderson
@@ -601,8 +646,8 @@ residual_anderson
 
 Este supuesto de normalidad de los residuos también se puede comprobar graficamente y como se ve en la gráfica nuestros datos se separan en las colas de la línea principal y eso nos  puede indicar que los residuos no siguen una diatribución normal.
 
-```{r}
-#estas tres graficas te muestran lo mismo
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+#Estas tres graficas te muestran lo mismo
 plot(mejor_modelo,2)
 
 autoplot(mejor_modelo,2)
@@ -613,21 +658,23 @@ yfit<-dnorm(xfit)
 lines(xfit,yfit)
 ```
 
-Con el Q-Q plot vemos que los residuos no siguen una distribución normal en las colas. Por tanto, no se puede asumir que los estimadores de los coeficientes tengan una distribución normal
+Con el Q-Q plot vemos que los residuos no siguen una distribución normal en las colas. Por tanto, no se puede asumir que los estimadores de los coeficientes tengan una distribución normal.
 
 ### 7.3.3. Homocedasticidad
 
 Vamos a comprobar la homocedasticidad (que los residuos tengan una varianza constante).
+
 Como podemos ver en los resultados p_value < 0.05 por tanto se rechaza la hipotesis nula y esto indica que la varianza no es constante para este modelo de regresion lineal(esto es un problema). Podemos concluir que este modelo matemático no es adecuado.
 
-```{r}
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 #https://fhernanb.github.io/libro_regresion/homo.html
 #otra prueba para comprobar homocedasticidad
 ncvTest(mejor_modelo)
 ```
 
 También podemos comprobar gráficamente la hocedasticidad, sería bueno que la línea roja sea lo más recta/horizontal posible.
-```{r}
+
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 #rechazamos la hipotesis nula que la varianza de los errores ees constante
 plot(mejor_modelo,3)
 
@@ -639,31 +686,30 @@ Hay claro patrón de embudo, lo que indica que se viola el principio de homoceda
 ### 7.3.4. Independencia de los residuos
 
 Como se puede ver en los resultados el p_value > 0.05 por lo que aceptamos la Ho de que hay independencia.
-```{r}
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 #medimos independencia entre los residuos
 #entonces no rechazamos la  hipotesis nula y podemos asumir que los residuos no presentan autcorrelacion
 dwtest(mejor_modelo)
 ```
 
 Se puede comprobar la independencia de los residuos gráficamente y como se observa no se ven patrónes extraños y esto nos puede indicar que hay independencia en los residuos y que estos no presentan autocorrelación.
-```{r}
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 plot(mejor_modelo$resid)
 
 acf(mejor_modelo$residuals)
 ```
 
 ### Nota:
-Existe una forma de ver un resumen de si se cumplen o no los supuestos, pero es mejor hacerlo paso a paso
+Existe una forma de ver un resumen de si se cumplen o no los supuestos, pero es mejor hacerlo paso a paso.
 
-```{r}
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 library(gvlma)
 gvlma(mejor_modelo)
 ```
 
-Se puede graficar todo a la vez 
-```{r}
+Se puede graficar todo a la vez.
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 plot(mejor_modelo)
 ```
-
 
 ### Conclusiones
