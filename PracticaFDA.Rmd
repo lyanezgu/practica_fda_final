@@ -664,3 +664,6 @@ Se puede graficar todo a la vez
 ```{r}
 plot(mejor_modelo)
 ```
+
+
+### Conclusiones
