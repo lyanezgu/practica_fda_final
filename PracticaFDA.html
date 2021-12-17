@@ -1007,26 +1007,38 @@ summary(modelo)</code></pre>
 <div id="seleccion-de-variables-para-modelo-de-regresión" class="section level2">
 <h2>7.2. Seleccion de variables para modelo de regresión</h2>
 <p>Para la selección de variables se utiliza el método de la selección automática por pasos.</p>
-<pre class="r"><code># metodo de selección por pasos e indica las variables que
+<pre class="r"><code>empty.model &lt;- lm(copagos ~ 1, data = train)
+horizonte &lt;- formula(copagos ~ categoria_state + categoria_enf +
+    cobertura + mean_covered_charges + total_discharges)
+# metodo de selección por pasos e indica las variables que
 # son significativas
-seleccion = stepAIC(modelo, direction = c(&quot;both&quot;))</code></pre>
-<pre><code>## Start:  AIC=1749807
-## copagos ~ categoria_state + categoria_enf + cobertura + mean_covered_charges + 
-##     total_discharges
+seleccion = stepAIC(empty.model, direction = c(&quot;both&quot;), trace = FALSE,
+    scope = horizonte)
+seleccion$anova</code></pre>
+<pre><code>## Stepwise Model Path 
+## Analysis of Deviance Table
 ## 
-##                        Df  Sum of Sq        RSS     AIC
-## &lt;none&gt;                               8.7251e+10 1749807
-## - total_discharges      1 2.1870e+06 8.7253e+10 1749808
-## - categoria_state       2 5.9500e+08 8.7846e+10 1750689
-## - mean_covered_charges  1 6.2275e+09 9.3478e+10 1758798
-## - categoria_enf         2 2.3158e+10 1.1041e+11 1780512
-## - cobertura             1 6.8858e+10 1.5611e+11 1825697</code></pre>
+## Initial Model:
+## copagos ~ 1
+## 
+## Final Model:
+## copagos ~ cobertura + categoria_enf + mean_covered_charges + 
+##     categoria_state + total_discharges
+## 
+## 
+##                     Step Df    Deviance Resid. Df   Resid. Dev     AIC
+## 1                                          130451 172413926374 1838645
+## 2            + cobertura  1 32375728559    130450 140038197815 1811515
+## 3        + categoria_enf  2 44903152807    130448  95135045008 1761084
+## 4 + mean_covered_charges  1  7286906024    130447  87848138984 1750691
+## 5      + categoria_state  2   595270272    130445  87252868711 1749808
+## 6     + total_discharges  1     2187041    130444  87250681670 1749807</code></pre>
 <p>Vemos la información del elegido como “mejor”</p>
 <pre class="r"><code>summary(seleccion)</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = copagos ~ categoria_state + categoria_enf + cobertura + 
-##     mean_covered_charges + total_discharges, data = train)
+## lm(formula = copagos ~ cobertura + categoria_enf + mean_covered_charges + 
+##     categoria_state + total_discharges, data = train)
 ## 
 ## Residuals:
 ##    Min     1Q Median     3Q    Max 
@@ -1035,12 +1047,12 @@ seleccion = stepAIC(modelo, direction = c(&quot;both&quot;))</code></pre>
 ## Coefficients:
 ##                        Estimate Std. Error  t value Pr(&gt;|t|)    
 ## (Intercept)           1.024e+04  3.033e+01  337.486   &lt;2e-16 ***
-## categoria_stateLow   -2.822e+02  9.477e+00  -29.773   &lt;2e-16 ***
-## categoria_stateMid   -1.546e+02  7.616e+00  -20.296   &lt;2e-16 ***
+## cobertura            -9.771e+03  3.045e+01 -320.853   &lt;2e-16 ***
 ## categoria_enfLow     -1.634e+03  8.800e+00 -185.647   &lt;2e-16 ***
 ## categoria_enfMid     -8.758e+02  6.915e+00 -126.656   &lt;2e-16 ***
-## cobertura            -9.771e+03  3.045e+01 -320.853   &lt;2e-16 ***
 ## mean_covered_charges  8.035e-03  8.327e-05   96.490   &lt;2e-16 ***
+## categoria_stateLow   -2.822e+02  9.477e+00  -29.773   &lt;2e-16 ***
+## categoria_stateMid   -1.546e+02  7.616e+00  -20.296   &lt;2e-16 ***
 ## total_discharges      8.529e-02  4.717e-02    1.808   0.0706 .  
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
@@ -1125,7 +1137,7 @@ autoplot(mejor_modelo, 1)</code></pre>
 </div>
 <div id="normalidad-de-los-residuos" class="section level3">
 <h3>7.3.2. Normalidad de los residuos</h3>
-<p>Primero se comprueba la normalidad de los residuos, pero al usar Shapiro test solo permite usar las 5000 primeras muestras de los residuos, así que también usamos Anderson-Darling para comparar resultados. Como se comprueba más adelante el p_value &lt; 0.05, se rechaza la hipotesis nula de que los residuos siguen una distriibución normal.</p>
+<p>Primero se comprueba la normalidad de los residuos, pero al usar Shapiro test solo permite usar las 5000 primeras muestras de los residuos, así que también usamos Anderson-Darling para comparar resultados. Como se comprueba más adelante el p_value &lt; 0.05, se rechaza la hipotesis nula de que los residuos siguen una distribución normal.</p>
 <ul>
 <li>Shapiro:</li>
 </ul>
