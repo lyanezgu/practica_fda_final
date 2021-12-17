@@ -568,8 +568,12 @@ summary(modelo)
 Para la selección de variables se utiliza el método de la selección automática por pasos.
 
 ```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+empty.model <- lm(copagos ~ 1, data=train)
+horizonte <- formula(copagos~categoria_state+categoria_enf+cobertura
+           +mean_covered_charges+total_discharges)
 #metodo de selección por pasos e indica las variables que son significativas
-seleccion=stepAIC(modelo,direction = c("both"))
+seleccion=stepAIC(empty.model,direction = c("both"),trace=FALSE,scope = horizonte)
+seleccion$anova
 ```
 
 Vemos la información del elegido como "mejor"
@@ -626,7 +630,7 @@ En el gráfico de Residuos vs. Ajustes se observa que la media de los residuos e
 
 ### 7.3.2. Normalidad de los residuos
 
-Primero se comprueba la normalidad de los residuos, pero al usar Shapiro test solo permite usar las 5000 primeras muestras de los residuos, así que también usamos Anderson-Darling para comparar resultados. Como se comprueba más adelante el p_value < 0.05, se rechaza la hipotesis nula de que los residuos siguen una distriibución normal.
+Primero se comprueba la normalidad de los residuos, pero al usar Shapiro test solo permite usar las 5000 primeras muestras de los residuos, así que también usamos Anderson-Darling para comparar resultados. Como se comprueba más adelante el p_value < 0.05, se rechaza la hipotesis nula de que los residuos siguen una distribución normal.
 
 * Shapiro:
 ```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
