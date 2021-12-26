@@ -57,7 +57,7 @@ El conjunto de datos elegido por el grupo se llama "Hospital Charges in America"
 
 ## 2.1. Carga de los datos
 
-El conjunto de datos "Hospital Charges in America" contiene 12 columnas y 163.065 fila y lo obtenemos en formato .csv. 
+El conjunto de datos "Hospital Charges in America" contiene 12 columnas y 163.065 filas y lo obtenemos en formato .CSV. 
 Inicialmente se han guardado los datos en un data frame llamado "hospital_charges" y se ha realizado un estudio inicial sobre su contenido utilizando la función head y summary.
 
 ```{r cargas datos, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
@@ -69,7 +69,7 @@ summary(hospital_charges)
 
 ## 2.2. Definición de las variables que componen los datos de estudio
 
-Empezando ya el análsis en profundidad del conjunto de datos que tenemos, vemos que las 12 variables que componen los datos pueden ser descritas como:
+Empezando ya el análisis inicial del conjunto de datos que tenemos, vemos que las 12 variables que componen los datos pueden ser descritas como:
 
 * **DRG Definition:** Grupo relativo a un diagnostico. 
 Los grupos de diagnóstico relacionado (DRG) se utilizan para clasificar la gravedad de la enfermedad en las visitas hospitalarias de pacientes hospitalizados, el riesgo de mortalidad, el pronóstico, la dificultad del tratamiento, la necesidad de intervención y la intensidad de los recursos que necesitan. El sistema DRG fue desarrollado en la Universidad de Yale en la década de 1970 para la clasificación estadística de casos hospitalarios. Realmente la variable DRG es relativa al código y la descripción que identifican el MS-DRG. Los MS-DRG son un sistema de clasificación que agrupa condiciones clínicas similares (diagnósticos) y los procedimientos proporcionados por el hospital durante la estancia. El sistema de Medicare (Sistema de Seguridad Social en EEUU) los utiliza para determinar los reembolsos para hospitales, centros de enfermería especializada y hospicios. Una estadía en el hospital puede variar de un día a 100 días. Los MS-DRG más caros tienen las estadías promedio más largas. El establecimiento del cada DRG se establece según las condiciones clínicas del paciente, necesidad de cantidades similares de recursos para pacientes hospitalizados y sexo y edad del paciente. Para ello se utiliza el sistema de DRG llamado "Medicare Severity DRGs (MS-DRGs)" para reflejar en mejor manera la severidad de la enfermedad del paciente y su consumo de recursos para su recuperación. Para clasificar el nivel de severidad de un paciente dentro del sistema "MS-DRGs" hay códigos secundarios de diagnóstico:
@@ -104,9 +104,9 @@ Esto es lo que realmente se le paga al hospital e incluye lo que paga Medicare m
 
 ## 2.3. Definición de los objetivos
 
-El objetivo final del proyecto es llegar a un modelo que permita recomendar cual es el hospital o grupo de hospitales óptimo que debe elegir un paciente enfermo en EEUU en base a la posible enfermedad que le van a diagnosticar, su localización geográfica y los costes que su caso clínico puede llegar a tener en base al sistema sanitario estadounidense.
+El objetivo final del proyecto es conseguir llegar a un modelo que permita recomendar cual es el hospital o grupo de hospitales óptimo que debe elegir un paciente enfermo en EEUU en base a la posible enfermedad que le van a diagnosticar, su localización geográfica y los costes que su caso clínico puede llegar a tener en base al sistema sanitario estadounidense.
 
-Para esta primera entrega, el objetivo es realizar el tratamiento de datos adecuado y seleccionar las mejores variables que servirán para llegar al modelo de Machine Learning deseado. Se realizará de la misma manera un ajuste, interpretación y diagnosis del modelo de regresión lineal múltiple en base a las variables que mejor expliquen los datos y evaluando si se trata de un modelo correcto para nuestros datos o no.
+Para esta primera entrega, el objetivo es realizar el tratamiento de datos adecuado y seleccionar las mejores variables que servirán para llegar al modelo de Machine Learning deseado. Se realizará de la misma manera un ajuste, interpretación y diagnosis del modelo de regresión lineal múltiple en base a las variables que mejor expliquen los datos y evaluando si este se trata de un modelo correcto para nuestros datos o no.
 
 
 ## 2.4. Limpieza inicial del conjunto de datos
@@ -145,7 +145,7 @@ str(hospital_charges)
 
 # 3. Añadiendo datos faltantes al data set
 
-A través de la función summary empezamos comprobando que no hay datos faltantes en el data set. Por ello el grupo ha tenido que añadirlos manualmente para aproximarnos a un caso más real donde lo normal es encontrarlos y tener que lidiar con ellos. Los datos faltantes han sido imputados exclusivamente en las columnas que no creemos que no van a servir de análisis principal para este estudio (total_discharges y mean_covered_charges), para así intentar que la predicción que hagamos sea lo más precisa posible.
+A través de la función summary empezamos comprobando que no hay datos faltantes en el data set. Por ello el grupo ha tenido que añadirlos manualmente para tratar de aproximarnos a un caso más real donde lo normal es encontrarlos y tener que lidiar con ellos. Los datos faltantes han sido imputados exclusivamente en las columnas que no creemos que no van a servir de análisis principal para este estudio (total_discharges y mean_covered_charges), para así intentar que la predicción que hagamos sea lo más precisa posible.
 
 Utilizamos la librería missForest y generamos una semilla para que el resultado sea siempre el mismo.
 
@@ -157,7 +157,7 @@ hospital_charges <-bind_cols(hospital_charges[c(1,2,3,4,5,6,7,8,11,12)],
 hospital_charges
 ```
 
-Haciendo uso de la librería VIM, analizamos un poco la estructura que tienen nuestros datos faltantes dentro de nuestra data set para ver y entender como se distribuyen. 
+Haciendo uso de la librería VIM, analizamos un poco la estructura que tienen nuestros datos faltantes dentro de nuestro data set para ver y entender como se distribuyen. 
 
 Se puede comprobar que la proporción de datos faltantes en estas variables es de aproximadamente 10% y hay 1.622 filas en que las dos variables son faltantes.
 
@@ -165,6 +165,7 @@ Se puede comprobar que la proporción de datos faltantes en estas variables es d
 summary(aggr(hospital_charges,numbers=T,sortVar=T))
 
 ```
+
 
 # 4. Partición del conjunto de datos: data set training y data set test
 
@@ -185,7 +186,8 @@ test
 
 # 5. Detección, tratamiento e imputación de datos faltantes
 
-Para la imputación de datos faltantes en las columnas mean_covered_charges y total_discharges, reemplazados todos sus NAs según los valores medios de las mismas. Con la función summary si comproba que ya no hay más datos faltantes en el data set train.
+Para la imputación de datos faltantes en las columnas mean_covered_charges y total_discharges, reemplazados todos sus NAs según los valores medios de las mismas. 
+Con la función summary se comprueba que ya no hay más datos faltantes en el data set train.
 
 ```{r imputacion, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train$mean_covered_charges[is.na(train$mean_covered_charges)]<-mean(train$mean_covered_charges,na.rm = TRUE)
@@ -198,11 +200,13 @@ summary(train)
 
 # 6. EDA - Análisis exploratorio de datos
 
+Una vez entendidas las variables de nuestro conjunto de datos y teniendo claro nuestros objetivos de estudio, pasamos a la parte de análisis en profundidad de nuestros datos, para tratar de entenderlos y ver como se relacionan unas variables con otras.
+
 ## 6.1. Transformaciones de variables cuantitativas y procesado de variables cualitativas
 
 ### 6.1.1. División de la columna drg_def
 
-Realizamos una división de la columna "drg_ref". Separamos la columna en dos diferenciando entre código de la enfermedad y descripción de la enfermedad. Nos servirá a futuro para simplificar el análisis y visualización de los datos de interés en graficos y tablas.
+Primero de todo realizamos una división de la columna "drg_ref". Separamos la columna en dos, diferenciando entre código de la enfermedad y descripción de la enfermedad. Nos servirá a futuro para simplificar el análisis y visualización de los datos de interés en graficos y tablas.
 
 ```{r, message=FALSE, warning=FALSE, include=TRUE}
 train <-train %>% 
@@ -211,62 +215,78 @@ train <-train %>%
 
 train$codigo_enf <- as.factor(train$codigo_enf)
 
-head(train)
-
-
+train
 ```
 
 
 ### 6.1.2. Creando columna nueva relativa a los copagos que deben realizar los pacientes: mean_total_payments - mean_medicare_payments
 
-El grupo ha decidido crear una nueva variable representativa del valor de los copagos que debe realizar el paciente o su seguro privado (en caso de contar con uno), para completar (junto a lo que cubre el Estado con el Medicare) el coste total de la intervención hospitalaria.
+El grupo ha decidido crear una nueva variable representativa del valor de los copagos que debe realizar el paciente o su seguro privado (en caso de contar con uno), para completar (junto a lo que cubre el Estado con el Medicare) el coste total de la intervención hospitalaria (el total que realmente cobra el hospital por la intervención).
 
 
 ```{r nueva variable, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train <- train %>% mutate(copagos = mean_total_payments - mean_medicare_payments)
-head(train)
+train
 ```
 
 ### 6.1.3. Creando columna nueva relativa a la tasa de cobertura de la Seguridad Social estadounidense: mean_medicare_payments/mean_total_payments
 
 Además de la variable copago, hemos creado una nueva variable representativa de la tasa de cobertura que ofrece el sistema de salud de la Seguridad Social americana según el hospital, el grupo de diagnóstico y la gravedad del paciente. Nos ayudamos para ello de la librería formattable, obteniendo resultados en forma de porcentaje de cobertura sobre el total a pagar al hospital.
 
-
 ```{r nueva variabledos,  include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train <- train %>% mutate(cobertura = percent(mean_medicare_payments/mean_total_payments))
-head(train)
+
+train
 ```
 
 ### 6.1.4. Creando columna nueva para uso en variables categóricas: Media por Estado según mean_total_payments = mean_total_state
 
-Como tenemos dos variables categóricas (estado y grupo de enfermedad) que queremos comprobar su efecto en nuestro modelo de regresión lineal múltiple, tenemos que crear variables dummies que serán variables creadas para cada uno de los niveles del predictor categórico y que pueden tomar valores de 0 o 1.
+Como tenemos dos variables categóricas (Estado y grupo de enfermedad) que queremos comprobar su efecto en nuestro modelo de regresión lineal múltiple, tenemos que crear variables dummies que serán variables creadas para cada uno de los niveles del predictor categórico y que pueden tomar valores de 0 o 1.
 
-Inicialmente hemos creado una nueva columna mean_total_payments agrupada por state (es decir, la media de total_payments por estado) para que así, estados iguales tengan el mismo valor quantitativo en esta variable. 
+Inicialmente hemos creado una nueva columna mean_total_payments agrupada por state (es decir, la media de total_payments por Estado) para que así, Estados iguales tengan el mismo valor cuantitativo en esta variable. 
 
 ```{r mean total state, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train <- train %>% group_by(prov_state) %>% 
   mutate(mean_total_state=mean(mean_total_payments))
 
-head(train)
+train
 ```
 
 ### 6.1.5. Creando columna nueva para uso en variables categóricas: Media por enfermedad según mean_total_payments = mean_total_enf
 
-
-Lo mismo hicimos para la variable enfermedad donde creamos una nueva variable que es la media total de los costes por enfermedad.
+Hacemos exactamente lo mismo para la variable enfermedad. Creamos una nueva columna mean_total_payments agrupada por código de enfermedad (es decir, la media de total_payments por tipo de enfermedad DRG) para que así, enfermedades DRG iguales tengan el mismo valor cuantitativo en esta variable.
 
 ```{r mean total enf,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train <- train %>% group_by(codigo_enf) %>% 
   mutate(mean_total_enf=mean(mean_total_payments))
 
-head(train)
-
+train
 ```
+
 
 ### 6.1.6. Variable categórica dummy: categoria_state -> niveles alto, medio y bajo
 
-Una vez que hemos creado nuestras nuevas colunmas cuantitativas y para reducir los niveles del predictor categóricos a 3, creamos una segunda nueva variable agrupando los costes por Estados (51 estados) por 3 niveles High, Mid y Low según la variable "mean_total_state". Para estabelecer los limites de la partición nos hemos basado en los cuantiles de esta variable "mean_total_state".
+Una vez que hemos creado nuestras nuevas colunmas cuantitativas y para reducir los niveles del predictor categóricos a 3, creamos una segunda nueva variable agrupando los costes por Estados (51 estados) por 3 niveles High, Mid y Low según la variable "mean_total_state" recientemente creada. 
 
+Para estabelecer los limites de la partición por categorias nos hemos basado en los valores numéricos obtenidos con la variable creada de "mean_total_state" y en un análisis visual del mapa de EEUU donde podemos distinguir a grandes rasgos 3 niveles por colores.
+
+```{r test mapa 3, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+region_geog_3 <- train %>% group_by(prov_state) %>% summarise (mean_total_cost = mean(mean_total_state))
+
+names(statepop) <- c('fips','prov_state','full','pop_2015') 
+
+statepop4 <- statepop %>% left_join(region_geog_3, by='prov_state') 
+
+plot_usmap(data = statepop4, values = "mean_total_cost", color = "white") + 
+  scale_fill_continuous(low='green', high ='red',name = "Media Costes por Estado", label = scales::dollar) + 
+  theme(legend.position = "right")
+```
+
+Finalmente se opta por dividir a los 3 grupos de Estados de la siguiente manera:
+
+* **High o de coste alto:** para los Estados con un coste total en media igual o mayor a 12.000 dólares (colores rojos y anaranjados)
+* **Mid o de coste medio:** para los Estados con un coste total en media igual o mayor a 8.500 dólares y menor a 12.000 dólares (colores verdes apagados o poco intensos)
+* **Low o coste bajo:** para los Estados con un coste total en media inferior a 8.500 dólares (colores verdes intensos)
 
 ```{r grupo estado, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 
@@ -274,12 +294,12 @@ train<-train %>%
     mutate(categoria_state = case_when(mean_total_state >= 12000  ~ 'High',
                                   mean_total_state >= 8500 ~ 'Mid',
                                   TRUE ~ 'Low'))
-head(train)
+train
  
-ggplot(train)+geom_bar(aes(x=categoria_state, fill = categoria_state)) + theme(legend.position ="none")+ggtitle("Frecuencia de cada categoria creada para los estados - Low, Mid y High")
-
-
+ggplot(train)+geom_bar(aes(x=categoria_state, fill = categoria_state)) + theme(legend.position ="none")+ggtitle("Frecuencia por categoria creada para Estados - Low, Mid y High")
 ```
+
+Observamos como la gran mayoría de Estados se situan en la categoría de coste total medio, siendo más raro encontrar Estados de coste total bajo o alto.
 
 ```{r dummys, include=FALSE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 res <- model.matrix(~categoria_state, data = train)
@@ -290,16 +310,37 @@ head(res[, -1])
 
 La misma lógica del apartado anterior ha sido utilizada para agrupar los grupos de enfermedad (100 grupos de enfermedad) en apenas Low, Mid y High según la variable "mean_total_enf".
 
+Para estabelecer los limites de la partición por categorias nos hemos basado en los valores numéricos obtenidos con la variable creada de "mean_total_enf" y en un análisis visual con un gráfico donde podemos distinguir a grandes rasgos 3 niveles por grados de color y longitud de las barras.
+
+```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60), fig.width=10, fig.height=7}
+ggplot(data=train, aes(x=codigo_enf, y=mean_total_enf, fill=mean_total_enf)) +
+    geom_bar(colour="black", stat="identity",
+             position=position_dodge(),
+             size=.3) +                        
+    xlab("codigo_enf") + ylab("mean_total_enf") + 
+    ggtitle("Coste medio según tipo de enfermedad") +     
+    theme_bw() + 
+    theme(axis.text=element_text(size=7, angle = 90)) + 
+    scale_y_continuous(labels = scales::dollar)
+```
+
+Finalmente se opta por dividir a los 3 grupos de Enfermedades de la siguiente manera:
+
+* **High o de coste alto:** para las Enfermedades con un coste total en media igual o mayor a 15.000 dólares (colores rojos y anaranjados)
+* **Mid o de coste medio:** para las Enfermedades con un coste total en media igual o mayor a 5.000 dólares y menor a 15.000 dólares (colores verdes apagados o poco intensos)
+* **Low o coste bajo:** para las Enfermedades con un coste total en media inferior a 5.000 dólares (colores verdes intensos)
+
 ```{r grupo enf, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train<-train %>%
-    mutate(categoria_enf = case_when(mean_total_enf >= 13000 ~ 'High',
-                                  mean_total_enf >= 5500 ~ 'Mid',
+    mutate(categoria_enf = case_when(mean_total_enf >= 15000 ~ 'High',
+                                  mean_total_enf >= 5000 ~ 'Mid',
                                   TRUE ~ 'Low'))
-head(train)
+train
 
-ggplot(train)+geom_bar(aes(x=categoria_enf, fill = categoria_enf)) + theme(legend.position ="none")+ggtitle("Frecuencia de cada categoria creada para los grupos de enfermedades - Low, Mid y High")
-
+ggplot(train)+geom_bar(aes(x=categoria_enf, fill = categoria_enf)) + theme(legend.position ="none")+ggtitle("Frecuencia por categoria creada para Enfermedades - Low, Mid y High")
 ```
+
+Observamos de nuevo como la gran mayoría de Enfermedades se situan en la categoría de coste total medio, siendo más raro encontrar Enfermedades de coste total bajo o alto.
 
 ```{r}
 res2 <- model.matrix(~categoria_enf, data = train)
@@ -308,13 +349,11 @@ head(res2[, -1])
 
 ## 6.2. Análisis exhaustivo de los datos críticos para el estudio
 
-### 6.2.1. Gráfico EEUU: valor de los Copagos por Estados
+### 6.2.1. Gráficos de mapa de EEUU: valor de los Copagos y Costes Médicos por Estado y su comparativa
 
-Con la ayuda de la libreria "usmap" hemos creado un mapa para visualmente identificar como se distribuyen los valores de copagos en los diferentes estados de EEUU.
+Por un lado, con la ayuda de la libreria "usmap", hemos creado primero un mapa para visualmente identificar como se distribuyen los valores de copagos en los diferentes Estados de EEUU.
 
 ```{r test mapa, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-
-
 region_geog <- train %>% group_by(prov_state) %>% summarise (mean_total_price = mean(copagos))
 names(statepop) <- c('fips','prov_state','full','pop_2015') 
 
@@ -323,21 +362,16 @@ statepop2 <- statepop %>% left_join(region_geog, by='prov_state')
 plot_usmap(data = statepop2, values = "mean_total_price", color = "white") + 
   scale_fill_continuous(low='light blue', high ='dark blue',name = "Media Copagos", label = scales::dollar) + 
   theme(legend.position = "right")
-
 ```
 
-Los estados americanos más caros para el paciente son Wyoming (copagos medio de 1983 dólares), Utah (copagos medio de 1927 dólares) y Hawái (copagos medio de 1851 dólares) 
+Los Estados americanos más caros para el paciente son Wyoming (copagos medio de 1.983 dólares), Utah (copagos medio de 1.927 dólares) y Hawái (copagos medio de 1.851 dólares) 
 
-Wyoming es el estado menos poblado de EEUU (dos tercios del territorio cubiertos por sierras y montañas), los componentes de su economia difieren significativamente de los otros estados (minería y turismo) y el gobierno es dueño de 50% de sus tierras.
+Wyoming es el estado menos poblado de EEUU (dos tercios del territorio cubiertos por sierras y montañas), los componentes de su economia difieren significativamente de los otros Estados (minería y turismo) y el gobierno es dueño de 50% de sus tierras.
 
 
-### 6.2.2. Gráfico EEUU: valor de los Costes Médicos por Estados
-
-Con la misma libreria "usmap" cream0os un nuevo mapa para visualmente identificar como se distribuyen los valores de total_payments en los diferentes estados de EEUU.
+Por otro lado, y usando la misma libreria "usmap", creamos un nuevo mapa para visualmente identificar como se distribuyen los valores de total_payments o costes totales que cobra el hospital en los diferentes Estados de EEUU.
 
 ```{r test mapa 2, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-
-
 region_geog_2 <- train %>% group_by(prov_state) %>% summarise (mean_total_cost = mean(mean_total_payments))
 
 names(statepop) <- c('fips','prov_state','full','pop_2015') 
@@ -349,11 +383,14 @@ plot_usmap(data = statepop3, values = "mean_total_cost", color = "white") +
   scale_fill_continuous(low='light green', high ='dark green',name = "Media Costes Totales", label = scales::dollar) + 
   theme(legend.position = "right")
 ```
-Los estados americanos con los costes médios totales más elevados son Alaska (media coste total de 14.928 dólares), DC - Washington (media coste total de 13.382 dólaress) y Hawái (media coste total de 12.996 dólares).
 
-Comparando los dos gráficas se puede concluir que estados como Hawái y Alaska tienen tanto un coste médio total de tratamiento alto, cuanto de copagos a serem pagos por el paciente. Wyoming, el estado más caro para el paciente, es también el quinto estado con tratamiento hospitalar total medio más caro.
+En este caso vemos que los Estados americanos con los costes médios totales más elevados son Alaska (media coste total de 14.928 dólares), DC - Washington (media coste total de 13.382 dólares) y Hawái (media coste total de 12.996 dólares).
 
-### 6.2.3. Top 10 enfermedades más comunes detectadas
+
+Comparando los dos gráficos de mapa se puede concluir que Estados como Hawái y Alaska tienen un coste médio total de tratamiento alto, así como un copago alto para los pacientes. Wyoming, el Estado con el copago caro para el paciente, es también el quinto estado con tratamiento hospitalar total medio más caro. Destacan además Estados como California y DC - Washington, los cuales si muestran un coste total alto en media, pero tienen copagos relativamente pequeños para el paciente, suponiendo esto unas tasas de cobertura alta del Medicare de la Seguridad Social de EEUU. Podemos entonces ver que no todos los Estados siguen el mismo patrón de relación entre el coste total y los copagos de los pacientes.
+
+
+### 6.2.2. Top 10 enfermedades más comunes detectadas
 
 Creamos un grafico de barras para visualizar las 10 enfermedades más comunes de nuestro data set.
 
@@ -377,7 +414,7 @@ El grupo DRG de mayor frecuencia es "194 - Pneumonia y Pleuresía con complicaci
 ias previas" (nivel medio de severidad) con 2.424 casos. En segundo y tercer lugar tenemos las "690 - Infecciones de las vías urinarias" (2.400 casos) y "392 -Esofagitis, Gastroenteritis y Enfermedades digestivas con " (2.368 casos) con o sin complicaciones.
 
 
-### 6.2.4. Top 10 enfermedades más caras 
+### 6.2.3. Top 10 enfermedades más caras 
 
 Creamos un grafico de barras para visualizar las 10 enfermedades más caras de nuestro data set.
 
@@ -395,7 +432,7 @@ El grupo DRG más caro es "870 - Septicemia y sepsis grave con periodo de hospit
 
 El segundo y tercer grupo DRG más caros son las "853 - Infecciones y enfermedades parasitarias" (coste médio de 40.296 dólares) y "207- Enfermedades respiratorias que requieren ventilación respiratória por más de 96 horas consecutivas (coste médio de 38372.14 dólares).	
 
-### 6.2.5. Gráfico de calor - ratio de cobertura por Estado para las 10 enfermedades más caras
+### 6.2.4. Gráfico de calor - ratio de cobertura por Estado para las 10 enfermedades más caras
 
 Creamos un grafico de calor para visualizar el ratio de cobertura pro Estado para las 10 enfermedades más caras de nuestro data set.
 
@@ -409,21 +446,15 @@ De manera general se puede decir que la tasa de cobertura de las top 10 enfermed
 
 La tasa de cobertura para la enfermedad Septicemia es en media, para todos los estados, de 95%, siendo entonces la enfermedad más cara para el sistema público, pero con gran cobertura y pocos copagos al paciente. Lo mismo se puede observar para las Enfermedades Parasitárias (94%) y Enfermedades Respiratória (93%).
 
-En el de Wyoming, el estado donde se hay que pagar las mayores cifras de copagos, no han sido registrados casos de Septicemia o Enfermedades Respiratórias, mientras la tasa de cobertura para Enfermedades Parasitárias es de 82%.
+En Wyoming, el Estado donde se pagan las mayores cifras de copagos, no han sido registrados casos de Septicemia o Enfermedades Respiratórias, mientras la tasa de cobertura para Enfermedades Parasitárias es de 82%.
 
 
-### 6.2.6. Correlación entre variables
+### 6.2.5. Correlación entre variables
 
 Queremos analisar si se puede afirmar estadisticamente que hay correlación positiva entre las variables mean_total_payments y mean_medicare_payments.
 
 ```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 cor(x=train$mean_total_payments, y=train$mean_medicare_payments)
-```
-
-```{r, include=FALSE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-#with(train, plot(x=mean_total_payments, y=mean_medicare_payments, pch=20, col='blue',
-                 #xlab='mean total payments', las=1,
-                 #ylab='mean_medicare_payments'))
 ```
 
 ```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
@@ -434,11 +465,12 @@ train %>% ggplot(aes(mean_total_payments, mean_medicare_payments)) +
        x='mean total payments',
        y='mean medicare payments`')
 ```
-Através de la grafica y de la función cor (valor 0.99 aproximadamente), afirmamos que estás dos variables se correlacionan positivamente. Eso era esperado una vez que el valor mean_medicare_payments es parte de lo que se entende por mean_total_payments.
 
-### 6.2.7. Análisis de la distribución de las variables
+A través de la grafica y de la función cor (valor 0.99 aproximadamente), afirmamos que estás dos variables se correlacionan positivamente. Se aprecia que a nivel general en la gran mayoría de casos, cuando aumenta el coste (sube la variable "mean total payments"), aumenta la cobertura del Medicare (sube también la variable "mean medicare payments").
 
-Queremos verificar si la variable "mean_total_payments" sigue una distribución normal.
+### 6.2.6. Análisis de la distribución de las variables
+
+Queremos verificar si la variable **"mean_total_payments"** sigue una distribución normal.
 ```{r total sin log, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train%>%
   filter(mean_total_payments<100000 ) %>%
@@ -453,7 +485,8 @@ train%>%
   filter(mean_total_payments<100000 ) %>%
   ggplot(aes(x=log10(mean_total_payments)))+ geom_histogram(color="red", fill = "red") + ggtitle("Distribuición normal - Log Mean Total Payments")
 ```
-Ahora queremos ver si la variable "mean_medicare_payments" sigue una distribución normal.
+
+Ahora queremos ver si la variable **"mean_medicare_payments"** sigue una distribución normal.
 
 ```{r medicare sin log,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train%>%
@@ -469,7 +502,7 @@ train%>%
   ggplot(aes(x=log10(mean_medicare_payments)))+ geom_histogram(color="blue", fill = "blue")+ggtitle("Distribuición normal - Log Mean Medicare Payments")
 ```
 
-Analisamos por fin si la variable "copagos" sigue una distribución normal.
+Analisamos por fin si la variable **"copagos"** sigue una distribución normal.
 
 ```{r copago sin log,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train%>%
@@ -488,9 +521,9 @@ Graficamente podemos decir que las tres curvas se asemejan a una distribuición 
 
 
 
-### 6.2.8. Boxplot - análisis de la variables de relevancia y de los atípicos observados
+### 6.2.7. Boxplot - análisis de la variables de relevancia y de los atípicos observados
 
-Creamos un sub data set solo con las variables numéricas para analisar si tienes valores atípicos.
+Creamos un sub data set solo con las variables numéricas para analizar si tienes valores atípicos.
 
 ```{r variables numericas,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train_num <- Filter(is.numeric, train)
@@ -531,7 +564,7 @@ p4
 mean(train_num$cobertura)
 ```
 
-### 6.2.9. Análisis de correlación entre variables númericas
+### 6.2.8. Análisis de correlación entre variables númericas
 
 ```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 res <- cor(train_num)
@@ -540,7 +573,7 @@ round(res, 2)
 corrplot(res, type = "upper", order = "hclust", 
          tl.col = "black", tl.srt = 45)
 ```
-Se observa una correlación positiva en casi todos los casos, expecto para copagas y cobertura.
+Se observa una correlación positiva en casi todos los casos, excepto para copagas y cobertura.
 
 
 ```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
@@ -563,7 +596,7 @@ theme_bw() + theme(legend.position = "none")
 
 ## 7.1. Ajuste del modelo de regresión
 
-Ajustamos un modelo de regresión lineal mútiple con el que vamos a predecir el valor de la variable copagos a partir de las siguientes variables independientes(categoria_state,categoria_enf,cobertura,mean_covered_charges y total_discharges).
+Ajustamos un modelo de regresión lineal mútiple con el que vamos a predecir el valor de la variable copagos a partir de las siguientes variables independientes(categoria_state, categoria_enf,cobertura, mean_covered_charges y total_discharges).
 
 ```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 modelo= lm(copagos~categoria_state+categoria_enf+cobertura
@@ -586,13 +619,12 @@ seleccion=stepAIC(empty.model,direction = c("both"),trace=FALSE,scope = horizont
 seleccion$anova
 ```
 
-Vemos la información del elegido como "mejor"
+Vemos la información del modelo elegido como "mejor"
 ```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 summary(seleccion)
 ```
 
 Nos quedamos con el modelo seleccionado como el mejor para la regresión según el método utilizado anteriormente.
-
 ```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 mejor_modelo=lm(copagos~categoria_state+categoria_enf+cobertura
            +mean_covered_charges+total_discharges,data=train)
@@ -603,7 +635,6 @@ summary(mejor_modelo)
 ### 7.2.1. Intervalos de confianza
 
 Determinamos los intervalos de confianza para las observaciones de nuestros datos.
-
 ```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 intervalos = predict(mejor_modelo,interval = "confidence",level = 0.95)
 head(intervalos)
@@ -612,7 +643,6 @@ head(intervalos)
 ###  7.2.2. Tabla anova
 
 La tabla anova nos muestra la significación de la regresión, en nuestro caso se puede ver en los resultados que la variable total_discharge no es significativa para el modelo ya que tiene un p_valor > 0.05.
-
 ```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 anova=aov(mejor_modelo)
 summary(anova)
