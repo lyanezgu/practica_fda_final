@@ -506,7 +506,7 @@ train %>% ggplot(aes(mean_medicare_payments, copagos)) +
 
 A través de la gráfica y de la función cor (valor 0.24 aproximadamente), afirmamos que estás dos variables se correlacionan positivamente a un nivel medio-bajo. No se puede afirmar que en la gran mayoría de casos, cuando aumenta la cobertura de la enfermedad por parte de la seguridad social, aumenta en la misma medida el copago que debe pagar el paciente. La tasa de cobertura no es igual siempre, sino que varía entre los diferentes tipos de enfermedad y por ello los copagos no son siempre iguales en proporción.
 
-#### 6.2.5.4. Correlación: mean_medicare_payments y copagos
+#### 6.2.5.4. Correlación: cobertura y copagos
 
 ```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 cor(x=train$cobertura, y=train$copagos)
@@ -828,23 +828,12 @@ dwtest(mejor_modelo)
 ```
 
 Se puede comprobar la independencia de los residuos gráficamente y como se observa no se ven patrónes extraños y esto nos puede indicar que hay independencia en los residuos y que estos no presentan autocorrelación.
+
 ```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 plot(mejor_modelo$resid)
 
 acf(mejor_modelo$residuals)
 ```
 
-### Nota:
-Existe una forma de ver un resumen de si se cumplen o no los supuestos, pero es mejor hacerlo paso a paso.
-
-```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-library(gvlma)
-gvlma(mejor_modelo)
-```
-
-Se puede graficar todo a la vez.
-```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-plot(mejor_modelo)
-```
 
 # 8. Conclusiones generales del estudio
