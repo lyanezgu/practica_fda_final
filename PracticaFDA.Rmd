@@ -451,7 +451,9 @@ En Wyoming, el Estado donde se pagan las mayores cifras de copagos, no han sido 
 
 ### 6.2.5. Correlación entre variables
 
-Queremos analisar si se puede afirmar estadisticamente que hay correlación positiva entre las variables mean_total_payments y mean_medicare_payments.
+#### 6.2.5.1. Correlación: mean_total_payments y mean_medicare_payments
+
+Queremos analizar si se puede afirmar estadisticamente que hay correlación positiva entre las variables mean_total_payments y mean_medicare_payments.
 
 ```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 cor(x=train$mean_total_payments, y=train$mean_medicare_payments)
@@ -463,12 +465,69 @@ train %>% ggplot(aes(mean_total_payments, mean_medicare_payments)) +
   geom_smooth(formula= 'y ~ x',method = 'lm') + 
   labs(title='Relación entre variables total payments y medicare payments', 
        x='mean total payments',
-       y='mean medicare payments`')
+       y='mean medicare payments')
 ```
 
-A través de la grafica y de la función cor (valor 0.99 aproximadamente), afirmamos que estás dos variables se correlacionan positivamente. Se aprecia que a nivel general en la gran mayoría de casos, cuando aumenta el coste (sube la variable "mean total payments"), aumenta la cobertura del Medicare (sube también la variable "mean medicare payments").
+A través de la gráfica y de la función cor (valor 0.99 aproximadamente), afirmamos que estás dos variables se correlacionan positivamente en un grado muy alto. Se aprecia que a nivel general en la gran mayoría de casos, cuando aumenta el coste (sube la variable "mean total payments"), aumenta la cobertura del Medicare (sube también la variable "mean medicare payments").
+
+#### 6.2.5.2. Correlación: mean_total_payments y copagos
+
+Queremos analizar si se puede afirmar estadisticamente que hay correlación positiva entre las variables mean_total_payments y copagos.
+
+```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+cor(x=train$mean_total_payments, y=train$copagos)
+```
+
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+train %>% ggplot(aes(mean_total_payments, copagos)) + 
+  geom_point(alpha=0.2, colour="green") + 
+  geom_smooth(formula= 'y ~ x',method = 'lm') + 
+  labs(title='Relación entre variables total payments y copagos', 
+       x='mean total payments',
+       y='copagos')
+```
+
+A través de la gráfica y de la función cor (valor 0.38 aproximadamente), afirmamos que estás dos variables se correlacionan positivamente a un nivel medio-bajo. No se puede afirmar que en la gran mayoría de casos, cuando aumenta el coste de la enfermedad, aumenta en la misma medida el copago que debe pagar el paciente.
+
+#### 6.2.5.3. Correlación: mean_medicare_payments y copagos
+
+```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+cor(x=train$mean_medicare_payments, y=train$copagos)
+```
+
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+train %>% ggplot(aes(mean_medicare_payments, copagos)) + 
+  geom_point(alpha=0.2, colour="green") + 
+  geom_smooth(formula= 'y ~ x',method = 'lm') + 
+  labs(title='Relación entre variables medicare payments y copagos', 
+       x='mean_medicare_payments',
+       y='copagos')
+```
+
+A través de la gráfica y de la función cor (valor 0.24 aproximadamente), afirmamos que estás dos variables se correlacionan positivamente a un nivel medio-bajo. No se puede afirmar que en la gran mayoría de casos, cuando aumenta la cobertura de la enfermedad por parte de la seguridad social, aumenta en la misma medida el copago que debe pagar el paciente. La tasa de cobertura no es igual siempre, sino que varía entre los diferentes tipos de enfermedad y por ello los copagos no son siempre iguales en proporción.
+
+#### 6.2.5.4. Correlación: mean_medicare_payments y copagos
+
+```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+cor(x=train$cobertura, y=train$copagos)
+```
+
+```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+train %>% ggplot(aes(cobertura, copagos)) + 
+  geom_point(alpha=0.2, colour="green") + 
+  geom_smooth(formula= 'y ~ x',method = 'lm') + 
+  labs(title='Relación entre variables cobertura y copagos', 
+       x='cobertura',
+       y='copagos')
+```
+
+A través de la gráfica y de la función cor (valor -0.43 aproximadamente), afirmamos que estás dos variables se correlacionan negativamente a un nivel medio-bajo. No se puede afirmar que en la gran mayoría de casos, cuando aumenta la tasa de cobertura de la enfermedad por parte de la seguridad social, disminuya en la misma medida el copago que debe pagar el paciente. La tasa de cobertura no es igual siempre, sino que varía entre los diferentes tipos de enfermedad y por ello los copagos no son siempre iguales en proporción. 
+
+Puede haber enfermedades caras con porcetajes de cobertura muy altos, pero que por el hecho de ser caras, sus copagos siguen siendo alto igualmente en términos absolutos. O se puede dar el caso de enfermedades no tan caras, pero con tasas de cobertura de la seguridad social muy bajas, que terminan traduciéndose en copagos muy altos para el paciente en términos absolutos y relativos.
 
 ### 6.2.6. Análisis de la distribución de las variables
+
+#### 6.2.6.1. Distribución variable mean_total_payments
 
 Queremos verificar si la variable **"mean_total_payments"** sigue una distribución normal.
 ```{r total sin log, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
@@ -486,11 +545,13 @@ train%>%
   ggplot(aes(x=log10(mean_total_payments)))+ geom_histogram(color="red", fill = "red") + ggtitle("Distribuición normal - Log Mean Total Payments")
 ```
 
+#### 6.2.6.2. Distribución variable mean_medicare_payments
+
 Ahora queremos ver si la variable **"mean_medicare_payments"** sigue una distribución normal.
 
 ```{r medicare sin log,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train%>%
-  filter(mean_medicare_payments<100000 ) %>%
+  filter(mean_medicare_payments<100000) %>%
   ggplot(aes(x=mean_medicare_payments))+ geom_histogram(color="blue", fill = "blue") + ggtitle("Distribuición normal - Mean Medicare Payments")
 ```
 
@@ -498,15 +559,17 @@ Analizamos la normalidad de la misma variable, pero ahora otra vez utilizando lo
 
 ```{r medicare con log,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train%>%
-  filter(mean_medicare_payments<100000 ) %>%
+  filter(mean_medicare_payments<100000) %>%
   ggplot(aes(x=log10(mean_medicare_payments)))+ geom_histogram(color="blue", fill = "blue")+ggtitle("Distribuición normal - Log Mean Medicare Payments")
 ```
 
-Analisamos por fin si la variable **"copagos"** sigue una distribución normal.
+#### 6.2.6.3. Distribución variable copagos
+
+Analizamos por fin si la variable **"copagos"** sigue una distribución normal.
 
 ```{r copago sin log,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train%>%
-  filter(mean_medicare_payments<100000 ) %>%
+  filter(mean_medicare_payments<100000) %>%
   ggplot(aes(x=copagos))+ geom_histogram(color = "orange", fill = "orange") + ggtitle("Distribuición normal - Copagos") 
 ```
 
@@ -514,21 +577,41 @@ Analizamos la normalidad de la misma variable, utilizando otra vez logaritmos.
 
 ```{r copagos con log,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train%>%
-  filter(mean_medicare_payments<100000 ) %>%
+  filter(mean_medicare_payments<100000) %>%
   ggplot(aes(x=log10(copagos)))+ geom_histogram(color = "orange", fill = "orange") + ggtitle("Distribuición normal - Log Copagos")
 ```
-Graficamente podemos decir que las tres curvas se asemejan a una distribuición normal ligeramente concentrada a la izquierda.
 
+#### 6.2.6.4. Distribución variable cobertura
+
+Analizamos por fin si la variable **"cobertura"** sigue una distribución normal.
+
+```{r cobertura sin log,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+train%>%
+  filter(mean_medicare_payments<100000 ) %>%
+  ggplot(aes(x=cobertura))+ geom_histogram(color = "green", fill = "green") + ggtitle("Distribuición normal - Cobertura") 
+```
+
+Analizamos la normalidad de la misma variable, utilizando otra vez logaritmos.
+
+```{r cobertura con log,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+train%>%
+  filter(mean_medicare_payments<100000) %>%
+  ggplot(aes(x=log10(cobertura)))+ geom_histogram(color = "green", fill = "green") + ggtitle("Distribuición normal - Log Cobertura")
+```
+
+Graficamente podemos decir que las tres primeras curvas de distribución se asemejan a una distribuición normal ligeramente concentrada a la izquierda (con valores de mayor coste,  más raros, infrecuentes y extremos, ubicados a la derecha de la distribución). En el caso de la última distribución mostrada, se ve que pasa justo lo contrario, la mayor parte de valores se ubican a la derecha de la distribución (entre tasas de cobertura médica de entre un 50% y un 100%).
 
 
 ### 6.2.7. Boxplot - análisis de la variables de relevancia y de los atípicos observados
 
-Creamos un sub data set solo con las variables numéricas para analizar si tienes valores atípicos.
+Creamos un sub data set solo con las variables numéricas para analizar si tienen valores atípicos.
 
 ```{r variables numericas,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 train_num <- Filter(is.numeric, train)
 train_num
 ```
+ 
+#### 6.2.7.1. Boxplot variable mean_total_payments
  
 ```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 p1 <- ggplot (train_num, aes(y= train_num$mean_total_payments)) + geom_boxplot(fill = "red") + scale_y_continuous(name = "dólares", labels = scales::dollar) + xlab("mean_total_payments") + ggtitle("Boxplot: mean_total_payments")
@@ -539,6 +622,8 @@ plot_grid(p1, p11)
 mean(train_num$mean_total_payments)
 ```
 
+#### 6.2.7.2. Boxplot variable mean_medicare_payments
+
 ```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 p2 <- ggplot (train_num, aes(y=train_num$mean_medicare_payments)) + geom_boxplot(fill = "blue") + scale_y_continuous(name = "dólares", labels = scales::dollar) + xlab("mean_medicare_payments") + ggtitle("Boxplot: mean_medicare_payments")
 
@@ -547,6 +632,8 @@ p22 <- ggplot (train_num, aes(y= log10(train_num$mean_medicare_payments))) + geo
 plot_grid(p2, p22)
 mean(train_num$mean_medicare_payments)
 ```
+
+#### 6.2.7.3. Boxplot variable copagos
 
 ```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 p3 <- ggplot (train_num, aes(y=train_num$copagos)) + geom_boxplot(fill = "yellow") + scale_y_continuous(name = "dólares", labels = scales::dollar) + xlab("copagos") + ggtitle("Boxplot: copagos")
@@ -557,12 +644,15 @@ plot_grid(p3, p33)
 mean(train_num$copagos)
 ```
 
+#### 6.2.7.4. Boxplot variable cobertura
+
 ```{r, include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 p4 <- ggplot (train_num, aes(y=train_num$cobertura)) + geom_boxplot(fill = "green") + scale_y_continuous(name = "% cobertura") + xlab("cobertura") + ggtitle("Boxplot: cobertura")
 
 p4
 mean(train_num$cobertura)
 ```
+
 
 ### 6.2.8. Análisis de correlación entre variables númericas
 
@@ -573,7 +663,7 @@ round(res, 2)
 corrplot(res, type = "upper", order = "hclust", 
          tl.col = "black", tl.srt = 45)
 ```
-Se observa una correlación positiva en casi todos los casos, excepto para copagas y cobertura.
+Se observa una correlación positiva en casi todos los casos, excepto para copagos y cobertura.
 
 
 ```{r,include=TRUE, message=FALSE, warning = FALSE,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
